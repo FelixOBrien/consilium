@@ -1,7 +1,8 @@
 """Offline ingestion.
 
-The ``manifest`` subcommand builds the stage-1 cohort manifest.
-Later stages are not implemented here.
+``manifest`` builds the stage-1 cohort. ``download`` fetches SVS files.
+``extract`` reads SVS headers and runs TRIDENT segmentation, patching, and
+``conch_v15`` features.
 """
 
 from __future__ import annotations
