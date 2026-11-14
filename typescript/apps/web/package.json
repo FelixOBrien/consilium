@@ -18,7 +18,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"gen:api": "openapi-typescript src/lib/api/openapi.json -o src/lib/api/schema.ts"
+		"gen:api": "openapi-typescript src/lib/api/openapi.json -o src/lib/api/schema.ts",
+		"test": "bun test src"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

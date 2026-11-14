@@ -1,25 +1,37 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
 
+	type SelectOption = string | { value: string; label: string };
+
 	let {
 		label,
 		value = $bindable(''),
 		options,
-		compact = false
+		compact = false,
+		onchange
 	}: {
 		label?: string;
 		value?: string;
-		options: string[];
+		options: SelectOption[];
 		compact?: boolean;
+		onchange?: (value: string) => void;
 	} = $props();
+
+	function optionValue(option: SelectOption): string {
+		return typeof option === 'string' ? option : option.value;
+	}
+
+	function optionLabel(option: SelectOption): string {
+		return typeof option === 'string' ? option : option.label;
+	}
 </script>
 
 <label class:compact class="field">
 	{#if label}<span class="field-label">{label}</span>{/if}
 	<span class="select-wrap">
-		<select bind:value>
-			{#each options as option (option)}
-				<option value={option}>{option}</option>
+		<select bind:value onchange={(event) => onchange?.(event.currentTarget.value)}>
+			{#each options as option (optionValue(option))}
+				<option value={optionValue(option)}>{optionLabel(option)}</option>
 			{/each}
 		</select>
 		<Icon name="chevron-down" size="sm" />
