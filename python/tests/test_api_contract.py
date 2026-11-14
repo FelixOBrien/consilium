@@ -14,11 +14,13 @@ from consilium.api.store import (  # pragma: allowlist secret
     DEMO_USER_ID,
     OTHER_USER_ID,
     PATCH_BREAST,
+    PATCH_THORAX,
     PATIENT_MULTI_ID,
     SEEDED_ANNOTATION_ID,
     SEEDED_JOB_ID,
     SEEDED_THREAD_ID,
     SLIDE_SIGNED_BREAST,
+    SLIDE_SIGNED_THORAX,
 )
 
 ARCHITECTURE_ROUTES = {
@@ -290,6 +292,8 @@ def test_heatmap_accepts_report_word_and_optional_concept() -> None:
         body = word.json()
         assert body["text"] == "necrosis"
         assert body["concept_id"] is None
+        assert body["source"] == "text"
+        assert body["cluster"] is None
         scores = {patch["score"] for patch in body["patches"]}
         assert 0 in scores and 1 in scores
         assert "Not a finding" in body["notice"]
@@ -317,6 +321,8 @@ def test_heatmap_accepts_report_word_and_optional_concept() -> None:
         assert concept.status_code == 200
         assert concept.json()["concept_id"] == "keratinisation"
         assert concept.json()["text"].startswith("an H&E image")
+        assert concept.json()["source"] == "concept"
+        assert concept.json()["cluster"] is None
 
         both = client.post(
             f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
@@ -341,6 +347,81 @@ def test_heatmap_accepts_report_word_and_optional_concept() -> None:
         concepts = client.get("/api/concepts", params={"specialty": "breast"}).json()
         assert [row["id"] for row in concepts] == ["necrosis", "mitotic-figures"]
         assert all(set(row) == {"id", "label", "prompt", "specialty"} for row in concepts)
+
+
+def test_stub_heatmap_accepts_patch_and_region() -> None:
+    region = {"slide_id": SLIDE_SIGNED_BREAST, "x": 0, "y": 0, "width": 512, "height": 512}
+    with _client() as client:
+        grown = client.post(
+            f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
+            json={"patch_id": PATCH_BREAST, "grow": True},
+        )
+        assert grown.status_code == 200
+        body = grown.json()
+        assert body["source"] == "patch"
+        assert body["text"] == ""
+        assert "selected tissue" in body["notice"]
+        assert "Not a finding" in body["notice"]
+        assert "not a diagnosis" in body["notice"]
+        seed = next(patch for patch in body["patches"] if patch["x"] == 0 and patch["y"] == 0)
+        assert seed["score"] == 1.0
+        assert body["cluster"]["cells"] == [{"x": 0, "y": 0, "size": 512}]
+        assert body["cluster"]["patch_count"] == 1
+        assert body["cluster"]["bbox"] == {"x": 0, "y": 0, "width": 512, "height": 512}
+        assert "embedding" not in grown.text
+
+        plain = client.post(
+            f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
+            json={"region": region, "grow": False},
+        )
+        assert plain.status_code == 200
+        assert plain.json()["source"] == "region"
+        assert plain.json()["cluster"] is None
+
+        wrong = client.post(
+            f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
+            json={"patch_id": PATCH_THORAX},
+        )
+        assert wrong.status_code == 422
+        assert wrong.json()["error"]["code"] == "validation_error"
+        assert "different slide" in wrong.json()["error"]["message"]
+
+        mismatched = client.post(
+            f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
+            json={
+                "region": {
+                    "slide_id": SLIDE_SIGNED_THORAX,
+                    "x": 0,
+                    "y": 0,
+                    "width": 512,
+                    "height": 512,
+                }
+            },
+        )
+        assert mismatched.status_code == 422
+        assert "different slide" in mismatched.json()["error"]["message"]
+
+        empty = client.post(
+            f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
+            json={
+                "region": {
+                    "slide_id": SLIDE_SIGNED_BREAST,
+                    "x": 9000,
+                    "y": 9000,
+                    "width": 10,
+                    "height": 10,
+                }
+            },
+        )
+        assert empty.status_code == 422
+        assert "no tissue" in empty.json()["error"]["message"]
+
+        missing = client.post(
+            f"/api/slides/{SLIDE_SIGNED_BREAST}/heatmap",
+            json={"patch_id": 999999},
+        )
+        assert missing.status_code == 404
+        assert missing.json()["error"]["message"] == "Patch not found."
 
 
 def test_slide_and_patch_placeholders() -> None:

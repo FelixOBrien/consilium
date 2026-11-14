@@ -11,7 +11,7 @@ This folder documents what the application does. A feature is one capability a u
 | [F-03](F03-slide-viewer.md) | Slide viewer | P0 | in-progress | [US-03](../stories/F03-slide-viewer.md) | S-02 |
 | [F-04](F04-report-viewer.md) | Report viewer | P0 | planned | [US-04](../stories/F04-report-viewer.md) | S-03 |
 | [F-05](F05-evidence-search.md) | Evidence search | P0 | planned | [US-05](../stories/F05-evidence-search.md) | S-04 |
-| [F-06](F06-phrase-heatmaps.md) | Report-context similarity overlay | P1 | planned | [US-06](../stories/F06-phrase-heatmaps.md) | S-02, S-03 |
+| [F-06](F06-phrase-heatmaps.md) | Report-context similarity overlay | P1 | in-progress | [US-06](../stories/F06-phrase-heatmaps.md) | S-02, S-03 |
 | [F-07](F07-consult-agent.md) | Consult agent | P0 | planned | [US-07](../stories/F07-consult-agent.md) | S-05 |
 | [F-08](F08-annotations.md) | Annotations | P1 | planned | [US-08](../stories/F08-annotations.md) | S-06 |
 | [F-09](F09-ingestion.md) | Ingestion | P0 bulk, P2 live | planned | [US-09](../stories/F09-ingestion.md) | S-08 |

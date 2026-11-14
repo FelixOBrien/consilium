@@ -17,16 +17,26 @@ from psycopg import Connection
 from consilium.api.errors import fail  # pragma: allowlist secret
 from consilium.api.schemas.concept import (  # pragma: allowlist secret
     SIMILARITY_NOTICE,
+    TISSUE_SIMILARITY_NOTICE,
     Concept,
     HeatmapPatchScore,
     HeatmapRequest,
     HeatmapResponse,
+    HeatmapSource,
 )
 from consilium.embed.text import (  # pragma: allowlist secret
     CONCHZ_MAX_TOKENS,
     ConchzTextEncoding,
     EmbedError,
     TextEncoders,
+)
+from consilium.search.cluster import grow_tissue_cluster  # pragma: allowlist secret
+from consilium.search.common import SearchError  # pragma: allowlist secret
+from consilium.search.query_vector import (  # pragma: allowlist secret
+    TissueQuery,
+    patch_query_vector,
+    region_query_vector,
+    to_halfvec,
 )
 
 # Cosine similarity is `1 - cosine_distance`. pgvector's `<=>` is that distance.
@@ -92,7 +102,7 @@ def concepts_for(conn: Connection, specialty: str | None) -> list[Concept]:
 
 def heatmap_for(
     conn: Connection,
-    encoders: TextEncoders,
+    encoders: TextEncoders | None,
     slide_id: str,
     body: HeatmapRequest,
 ) -> HeatmapResponse:
@@ -102,9 +112,17 @@ def heatmap_for(
     positive phrase. `negative_text` replaces a stored negative embedding and
     is the only text encoded in that case. Free `text` is encoded with the
     CONCH-Z text tower, along with `negative_text` when it is present.
+
+    `patch_id` and `region` use the same stored-vector helper as patch search.
+    Scoring of either source is still the exact SQL scan below. Nothing keeps
+    those vectors after the request.
     """
     if conn.execute(_SLIDE_SQL, (slide_id,)).fetchone() is None:
         fail(404, "not_found", "Slide not found.")
+    if body.patch_id is not None or body.region is not None:
+        return _tissue_heatmap(conn, slide_id, body)
+    if encoders is None:
+        fail(500, "error", "Text encoder is not configured.")
 
     truncated = False
     concept_id: str | None = None
@@ -139,6 +157,7 @@ def heatmap_for(
 
     patches = _score_slide(conn, slide_id, positive, negative)
     top = sorted(patches, key=lambda item: (-item.score, item.y, item.x))[:10]
+    source: HeatmapSource = "concept" if concept_id is not None else "text"
     return HeatmapResponse(
         text=phrase,
         concept_id=concept_id,
@@ -147,7 +166,49 @@ def heatmap_for(
         truncated=truncated,
         patches=patches,
         top=top,
+        source=source,
+        cluster=None,
     )
+
+
+def _tissue_heatmap(conn: Connection, slide_id: str, body: HeatmapRequest) -> HeatmapResponse:
+    """Shade one slide by similarity to a patch or a region, optionally grown."""
+    try:
+        tissue, source = _tissue_query(conn, slide_id, body)
+        positive = to_halfvec(tissue.vector)
+    except SearchError as exc:
+        fail(exc.status_code, exc.code, exc.message)
+    patches = _score_slide(conn, slide_id, positive, None)
+    top = sorted(patches, key=lambda item: (-item.score, item.y, item.x))[:10]
+    cluster = grow_tissue_cluster(patches, tissue.seeds) if body.grow else None
+    return HeatmapResponse(
+        text="",
+        concept_id=None,
+        negative_text=None,
+        notice=TISSUE_SIMILARITY_NOTICE,
+        truncated=False,
+        patches=patches,
+        top=top,
+        source=source,
+        cluster=cluster,
+    )
+
+
+def _tissue_query(
+    conn: Connection,
+    slide_id: str,
+    body: HeatmapRequest,
+) -> tuple[TissueQuery, HeatmapSource]:
+    if body.patch_id is not None:
+        tissue = patch_query_vector(conn, body.patch_id)
+        if tissue.slide_id != slide_id:
+            fail(422, "validation_error", "patch_id belongs to a different slide.")
+        return tissue, "patch"
+    region = body.region
+    assert region is not None
+    if region.slide_id != slide_id:
+        fail(422, "validation_error", "region belongs to a different slide.")
+    return region_query_vector(conn, region), "region"
 
 
 def normalise_scores(raw: Sequence[float]) -> list[float]:

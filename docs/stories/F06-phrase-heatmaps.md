@@ -1,7 +1,7 @@
 ---
 feature: F-06
 title: Report-context similarity overlay
-status: planned
+status: in-progress
 ---
 
 # Stories · F-06 Report-context similarity overlay
@@ -39,3 +39,16 @@ As a Pathologist, I want to replace or clear the active report word so that the 
 - **Acceptance:**
   - Given an active report word, when I select a different target word, then the overlay is replaced.
   - Given an active report word, when I clear it from the report or viewer, then the shading is removed.
+
+## US-06.4 · Shade the slide from selected tissue
+
+As a Pathologist, I want the open slide shaded by similarity to a patch or region I selected, with the connected similar tissue returned, so that I can see whether the tissue I am examining continues nearby.
+
+- **Priority:** P2
+- **Covers:** F-06.9, F-06.10, F-06.11, F-06.12
+- **Acceptance:**
+  - Given a patch on the open slide, when I request a heatmap for that patch, then that patch scores 1.0 and the notice says the shading is embedding similarity to the selected tissue, not a finding and not a diagnosis.
+  - Given a region on the open slide, when I request a heatmap with `grow`, then every seed patch is inside the cluster, the cluster is 8-connected, and its bounding box encloses every cell.
+  - Given a patch or region heatmap with `grow` false, then the response has scores and no cluster.
+  - Given a request with no source or more than one source, a patch or region from another slide, negative text with a patch or region, or `grow` with a report word or concept, then the API rejects it.
+  - Given a report word or concept heatmap, then the response matches the report-word contract apart from `source`.
