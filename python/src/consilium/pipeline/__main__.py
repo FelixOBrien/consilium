@@ -16,6 +16,7 @@ from consilium.embed.text import (  # pragma: allowlist secret
     require_hf_token,
 )
 from consilium.pipeline.download import DownloadResult, download_cohort  # pragma: allowlist secret
+from consilium.pipeline.evaluate import EvalResult, run_evaluate  # pragma: allowlist secret
 from consilium.pipeline.export import ExportResult, export_cohort  # pragma: allowlist secret
 from consilium.pipeline.extract import (  # pragma: allowlist secret
     SEGMENTERS,
@@ -60,6 +61,7 @@ _Result = (
     | Stage7Result
     | LoadResult
     | RunResult
+    | EvalResult
 )
 
 
@@ -112,6 +114,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_alignment_parser(subcommands)
     _add_load_parser(subcommands)
     _add_run_parser(subcommands)
+    _add_evaluate_parser(subcommands)
     return parser
 
 
@@ -278,6 +281,29 @@ def _add_load_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentPa
     )
 
 
+def _add_evaluate_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    evaluate = subcommands.add_parser(
+        "evaluate",
+        help="Score held-out retrieval. Research prototype, not for clinical use.",
+        description=(
+            "Score held-out retrieval against withheld labels read from Postgres. "
+            "Research prototype, not for clinical use."
+        ),
+    )
+    evaluate.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="Directory for report.md and report.json. Default: <repo>/data/eval.",
+    )
+    evaluate.add_argument(
+        "--encoder",
+        choices=("hf", "mock"),
+        default="hf",
+        help="Text encoder for report search. mock does not download weights.",
+    )
+
+
 def _add_run_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     run = subcommands.add_parser(
         "run",
@@ -328,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
             result = _run_alignment(args)
         elif args.command == "load":
             result = load_parquet(args.export_dir, replace_fixtures=args.replace_fixtures)
+        elif args.command == "evaluate":
+            result = run_evaluate(out_dir=args.out_dir, encoder=args.encoder)
         elif args.command == "run":
             result = run_pipeline(
                 tier=args.tier,
