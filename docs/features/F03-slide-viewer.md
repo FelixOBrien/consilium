@@ -58,4 +58,4 @@ G1. The slide is the primary evidence. Every retrieval feature starts from, or r
 - Switching slides within a multi-slide case changes the image and the URL.
 
 ## Open questions
-- Whether every sampled TCGA `.svs` file carries `openslide.mpp-x` (`aperio.MPP`) and `openslide.objective-power` (`aperio.AppMag`). If not, `slide.mpp` is supplied through TRIDENT's slide list or the slide is excluded by the manifest.
+- TCGA diagnostic SVS headers do carry resolution metadata. Checked on open-access `TCGA-06-0130-01Z-00-DX1` (GDC file `3188036e-674b-4699-9e6e-a23ee9ea7bed`): `openslide.mpp-x` is 0.5015 and matches `aperio.MPP`; `openslide.objective-power` is 20 and matches `aperio.AppMag`. `slide.mpp` can be read from the file.
