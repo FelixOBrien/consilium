@@ -1,30 +1,56 @@
 <script lang="ts">
-	import { Typography } from '#lib';
+	import ReportView from './ReportView.svelte';
+	import { loadCaseReport, type ReportLoad } from './report-load.js';
 	import { getWorkspaceContext } from './workspace-state.svelte.js'; // pragma: allowlist secret
 
 	const caseState = getWorkspaceContext(); // pragma: allowlist secret
-	const openCase = $derived(caseState.caseDetail?.status === 'open');
+	let load = $state<ReportLoad>({ phase: 'loading' });
+	let attempt = $state(0);
+
+	$effect(() => {
+		const caseId = caseState.caseId;
+		const current = attempt;
+		if (!caseId) {
+			load = { phase: 'loading' };
+			return;
+		}
+		let cancelled = false;
+		load = { phase: 'loading' };
+		void loadCaseReport(caseId).then((result) => {
+			if (cancelled) return;
+			void current;
+			load = result;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	const activePhrase = $derived(caseState.heatmapPhraseRequest?.phrase ?? null);
+
+	function onPhrase(phrase: string | null) {
+		caseState.requestHeatmapPhrase(phrase);
+	}
+
+	function onFindSimilar(text: string) {
+		caseState.triggerEvidenceSearch({ kind: 'report_text', text });
+	}
 </script>
 
-<div class="panel-placeholder">
-	<Typography style="eyebrow" tone="muted">Report</Typography>
-	<Typography as="h2" style="section">
-		{openCase ? 'Not yet reported' : 'Report'}
-	</Typography>
-	<Typography tone="secondary">
-		{#if openCase}
-			This case is not yet reported. An open case shows clinical history only, and no conclusion or
-			ICD-10.
-		{:else}
-			The signed-out report for this case will appear here, with citations back to the case.
-		{/if}
-	</Typography>
+<div class="report-panel">
+	<ReportView
+		{load}
+		{activePhrase}
+		{onPhrase}
+		{onFindSimilar}
+		onretry={() => {
+			attempt += 1;
+		}}
+	/>
 </div>
 
 <style>
-	.panel-placeholder {
-		display: grid;
-		gap: var(--space-3);
-		padding: var(--space-5);
+	.report-panel {
+		min-width: 0;
 	}
 </style>
