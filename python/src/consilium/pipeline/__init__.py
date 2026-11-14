@@ -1,11 +1,12 @@
 """Offline ingestion.
 
-The ``manifest`` subcommand builds the stage-1 cohort manifest.
-Later stages are not implemented here.
+``manifest`` builds the stage-1 cohort. ``reports`` and ``encode-concepts``
+build stage-7 patients, reports, chunks, and concept embeddings.
 """
 
 from __future__ import annotations
 
 from consilium.pipeline.manifest import build_manifest  # pragma: allowlist secret
+from consilium.pipeline.stage_reports import build_stage7  # pragma: allowlist secret
 
-__all__ = ["build_manifest"]
+__all__ = ["build_manifest", "build_stage7"]
