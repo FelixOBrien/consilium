@@ -15,8 +15,10 @@ uv run uvicorn consilium.api.app:app --reload <!-- pragma: allowlist secret -->
 Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git.
 
 ```bash
-uv sync --group pipeline   # GPU stack: torch, timm, transformers
+uv sync --group pipeline   # torch and transformers: offline pipeline and CPU text encoders
 uv sync --group tiles      # OpenSlide, for the tile server
 ```
+
+`consilium.embed` encodes image-query text with the CONCH-Z text tower and report text with `BAAI/bge-small-en-v1.5`, both on CPU. Those weights stay out of git. The default test run uses an in-process mock and does not download them. Set `CONSILIUM_RUN_HF_INTEGRATION=1` to run the live checks; CONCH-Z also needs `HF_TOKEN`. <!-- pragma: allowlist secret -->
 
 `uv run consilium --help` lists the `serve` command. Ingestion stages are not part of this install. <!-- pragma: allowlist secret -->

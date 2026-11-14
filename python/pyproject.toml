@@ -62,3 +62,6 @@ select = ["E", "F", "I", "UP", "B", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: live Hugging Face encoders; skipped unless CONSILIUM_RUN_HF_INTEGRATION=1", # pragma: allowlist secret
+]
