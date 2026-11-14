@@ -58,4 +58,4 @@ G1. The slide is the primary evidence. Every retrieval feature starts from, or r
 - Switching slides within a multi-slide case changes the image and the URL.
 
 ## Open questions
-- Whether HistAI files carry resolution metadata. If not, `slide.mpp` comes from the manifest (0.5 at 20x).
+- TCGA diagnostic SVS headers do carry resolution metadata. Checked on open-access `TCGA-06-0130-01Z-00-DX1` (GDC file `3188036e-674b-4699-9e6e-a23ee9ea7bed`): `openslide.mpp-x` is 0.5015 and matches `aperio.MPP`; `openslide.objective-power` is 20 and matches `aperio.AppMag`. `slide.mpp` can be read from the file.
