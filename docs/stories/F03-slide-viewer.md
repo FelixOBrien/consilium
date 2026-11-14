@@ -1,7 +1,7 @@
 ---
 feature: F-03
 title: Slide viewer
-status: planned
+status: done
 ---
 
 # Stories · F-03 Slide viewer
