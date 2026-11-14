@@ -79,6 +79,8 @@ Open diagnostic slides in the projects mapped to a specialty:
 | `skin` | SKCM | 475 | 198 |
 | `hematologic` | DLBC | 44 | 31 |
 
+Checked against the live `files` and `cases` endpoints on Sat 14 Nov 2026. Those slide counts match: 3,930 open diagnostic slide images, and the "under 1 GB" column is `file_size` of at most 1,000,000,000 bytes (a decimal gigabyte), which is the manifest size cap. Every one of those files is an Aperio `.svs` whose barcode slide code is `DX`. `samples.is_ffpe` and `demographic.gender` are not fields on this API; a query that names them returns an unrecognized-field warning. Whether a slide is FFPE is `samples.preservation_method` on the sample attached to the file. The value is `FFPE` except for six BRCA slides whose preservation method is `Unknown`, which the manifest drops. `demographic.sex_at_birth` is `female` or `male`. The diagnosis kept for a case is the one whose `classification_of_tumor` is exactly `primary` (not `Prior primary`, `Progression`, or `not reported`) and whose `primary_diagnosis` is not `Not Reported`.
+
 ### Reports: TCGA-Reports
 
 | Property | Value |
@@ -118,7 +120,9 @@ The app runs on a sample, sized to what one GPU and one evening can download and
 | `demo` | about 200, one diagnostic H&E slide per case, balanced across breast, thorax, colorectal, gastrointestinal, hematologic and skin | The submission. Under 200 GB of slides with the 1 GB per-slide cap. |
 | `stretch` | 500 or more | Only if the demo tier is loaded and searchable with time to spare. |
 
-About 10 demo cases are held out as open, unreported cases: their real reports are stored but hidden, so the worklist has cases to work on and retrieval quality can be measured.
+About 10 demo cases are held out as open, unreported cases: their real reports are stored but hidden, so the worklist has cases to work on and retrieval quality can be measured. The manifest marks 2 smoke cases and 10 demo cases `held_out`, spread across specialties. The stretch tier marks 25, the same fraction as 10 of about 200, so a stretch load still has an evaluation split.
+
+Lakebase Free Edition stores at most 512 MB, so a load there uses the smoke tier or a smaller subset of the demo tier rather than every demo patch. The manifest tiers are that subset.
 
 ## Model licences
 
