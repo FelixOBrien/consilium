@@ -12,7 +12,26 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			// SPA shell. SvelteKit 3 reads adapter options here; a svelte.config.js file is rejected.
+			adapter: adapter({
+				fallback: 'index.html'
+			})
 		})
-	]
+	],
+	server: {
+		proxy: {
+			'/api': {
+				target: 'http://127.0.0.1:8000',
+				changeOrigin: true
+			}
+		}
+	},
+	preview: {
+		proxy: {
+			'/api': {
+				target: 'http://127.0.0.1:8000',
+				changeOrigin: true
+			}
+		}
+	}
 });

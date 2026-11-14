@@ -10,7 +10,7 @@
     "check-types": "turbo run check-types",
     "typecheck": "turbo run typecheck",
     "gen:api": "uv run --directory ../python python -m consilium.api.export_openapi --out \"$PWD/apps/web/src/lib/api/openapi.json\" && bun run --filter web gen:api && prettier --write apps/web/src/lib/api/schema.ts # pragma: allowlist secret",
-    "test": "bun test --pass-with-no-tests"
+    "test": "bun run --filter web test"
   },
   "devDependencies": {
     "prettier": "3.9.6",

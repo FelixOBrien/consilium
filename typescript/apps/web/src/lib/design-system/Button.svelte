@@ -44,7 +44,8 @@
 		disabled = false,
 		type = 'button',
 		onclick,
-		ariaLabel
+		ariaLabel,
+		ariaExpanded
 	}: {
 		children?: Snippet;
 		variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'quiet';
@@ -56,6 +57,7 @@
 		type?: 'button' | 'submit';
 		onclick?: (event: MouseEvent) => void;
 		ariaLabel?: string;
+		ariaExpanded?: boolean;
 	} = $props();
 
 	const shadVariant = $derived(
@@ -91,6 +93,7 @@
 	{type}
 	{onclick}
 	aria-label={ariaLabel}
+	aria-expanded={ariaExpanded}
 >
 	{#if icon}<Icon name={icon} size={size === 'sm' ? 'sm' : 'md'} />{/if}
 	{#if children}{@render children()}{/if}
