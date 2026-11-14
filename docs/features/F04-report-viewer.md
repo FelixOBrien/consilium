@@ -31,7 +31,7 @@ G3. The signed report is what makes a retrieved slide region meaningful: it says
 1. A signed-out case shows its report in this order: clinical history, gross description, microscopic description, conclusion, differential diagnosis, additional information, ICD-10 code. Empty sections are omitted.
 2. The report header shows the author (`report.author_id`), `report.signed_at`, and a mark that author and date are synthetic.
 3. An open case shows the clinical history only, with a notice that the case has not been reported. A report with `status = withheld` is never sent to the client.
-4. Selecting text in a report offers two actions: **Show on slide**, which runs a phrase heatmap for the selection ([F-06](F06-phrase-heatmaps.md)), and **Find cases like this**, which runs a report search for the selection ([F-05](F05-evidence-search.md)).
+4. Informative non-stop words in report context reveal an embedding-target state on hover or focus. Selecting one maps that word onto the open slide ([F-06](F06-phrase-heatmaps.md)). Ordinary words remain plain text.
 5. The same report view is used when peeking at another case from search results or consult citations. In that context it shows which case it belongs to and a link to open that case.
 6. The author's name links to the cases they have reported, as a worklist filter.
 
