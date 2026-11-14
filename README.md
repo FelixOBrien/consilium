@@ -46,6 +46,9 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Library | [Hugging Face Hub](https://github.com/huggingface/huggingface_hub) | Model download for the pipeline | Apache-2.0 |
 | Library | [PyArrow](https://arrow.apache.org/) | Cohort manifest clinical table (`gdc_cases.parquet`) | Apache-2.0 |
 | Library | [OpenSlide](https://openslide.org/) (`openslide-python`, `openslide-bin`) | Tile server, optional install | LGPL-2.1 |
+| Library | [NumPy](https://numpy.org/) | Synthetic fixture images and unit vectors | BSD-3-Clause |
+| Library | [Pillow](https://python-pillow.org/) | JPEG thumbnails in fixture packs | MIT-CMU |
+| Library | [tifffile](https://github.com/cgohlke/tifffile) | Synthetic pyramidal TIFF fixture slides | BSD-3-Clause |
 | Platform | Databricks Free Edition (Unity Catalog, Delta, Lakebase, Apps) | Lakehouse, vector search, app hosting | — |
 
 Pathologist identities, sign-out dates, case assignments and multi-donor longitudinal patient links are synthetic: TCGA reports are de-identified and do not identify report authors or longitudinal clinical accessions.

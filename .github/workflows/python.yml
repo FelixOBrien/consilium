@@ -48,5 +48,6 @@ jobs:
           python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: python/uv.lock
-      - run: uv sync --frozen
+      # The tiles group provides OpenSlide so fixture-slide tests run rather than skip.
+      - run: uv sync --frozen --group tiles
       - run: uv run ruff check . && uv run pytest -q
