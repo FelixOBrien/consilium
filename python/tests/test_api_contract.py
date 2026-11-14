@@ -77,7 +77,7 @@ NEVER_SENT = {
 
 
 def _client() -> TestClient:
-    return TestClient(create_app())
+    return TestClient(create_app(use_stub_store=True))
 
 
 def test_openapi_lists_architecture_routes() -> None:
