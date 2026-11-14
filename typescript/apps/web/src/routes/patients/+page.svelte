@@ -1,58 +1,143 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
+	import { Badge, Button, EmptyState, Skeleton, StateMessage, TextField, Typography } from '#lib';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import { appendPatients, fetchPatientPage, type PatientPage } from '#lib/patients/load.js';
+	import { presentDirectoryRow, SYNTHETIC_LINKAGE } from '#lib/patients/present.js';
 	import {
-		Badge,
-		Button,
-		CheckField,
-		EmptyState,
-		Skeleton,
-		StateMessage,
-		TextField,
-		Typography
-	} from '#lib';
-	import { cases, patients } from '#lib/data.js';
+		directoryKey,
+		parseDirectoryQuery,
+		writeDirectoryQuery,
+		type DirectoryQuery
+	} from '#lib/patients/query.js';
+	import { directoryScreen } from '#lib/patients/screen.js';
+	import type { PatientSummary } from '#lib/patients/types.js';
 
+	const productName = 'Consilium'; // pragma: allowlist secret
+
+	let items = $state<PatientSummary[]>([]);
+	let nextCursor = $state<string | null>(null);
+	let loading = $state(true);
+	let failed = $state(false);
+	let loadingMore = $state(false);
+	let moreError = $state(false);
 	let filter = $state('');
-	let multiOnly = $state(false);
-	let screenState = $state('ready');
+	let reloadNonce = $state(0);
+	let requestId = 0;
+	let appliedKey = '';
+	let filterTimer: ReturnType<typeof setTimeout> | undefined;
 
-	const enrichedPatients = $derived(
-		patients.map((patient) => {
-			const patientCases = cases.filter((item) => item.patientId === patient.id);
-			const openCount = patientCases.filter((item) => item.status === 'Open').length;
-			const signedCount = patientCases.length - openCount;
-			return {
-				...patient,
-				caseCount: patientCases.length,
-				openCount,
-				signedCount,
-				latestAccessioned: patientCases[0]?.accessioned ?? '—'
-			};
+	const directory = $derived(parseDirectoryQuery(page.url.searchParams));
+	const rows = $derived(items.map(presentDirectoryRow));
+	const screen = $derived(
+		directoryScreen({
+			loading,
+			failed,
+			itemCount: items.length,
+			query: directory
 		})
 	);
 
-	const filtered = $derived(
-		enrichedPatients.filter((patient) => {
-			if (multiOnly && patient.caseCount < 2) return false;
-			if (
-				filter.trim() &&
-				!patient.displayLabel.toLowerCase().includes(filter.trim().toLowerCase()) &&
-				!patient.specialties.some((s) => s.toLowerCase().includes(filter.trim().toLowerCase()))
-			) {
-				return false;
-			}
-			return true;
-		})
-	);
-
-	onMount(() => {
-		screenState = page.url.searchParams.get('state') ?? 'ready';
+	$effect(() => {
+		const key = directoryKey(directory);
+		if (key === appliedKey) return;
+		appliedKey = key;
+		filter = directory.q;
 	});
+
+	$effect(() => {
+		const current = directory;
+		void reloadNonce;
+		const token = ++requestId;
+		loading = true;
+		failed = false;
+		moreError = false;
+		items = [];
+		nextCursor = null;
+		void refresh(current, token);
+	});
+
+	$effect(() => {
+		return () => clearTimeout(filterTimer);
+	});
+
+	function commit(next: DirectoryQuery) {
+		clearTimeout(filterTimer);
+		const normalised: DirectoryQuery = { q: next.q.trim(), multiCase: next.multiCase };
+		appliedKey = directoryKey(normalised);
+		const url = writeDirectoryQuery(new URL(page.url.href), normalised);
+		const target = `${url.pathname}${url.search}`;
+		const current = `${page.url.pathname}${page.url.search}`;
+		if (target === current) return;
+		void goto(resolve(target as '/'), { replace: true, reset: false });
+	}
+
+	function scheduleFilter() {
+		clearTimeout(filterTimer);
+		filterTimer = setTimeout(() => {
+			commit({ q: filter, multiCase: directory.multiCase });
+		}, 250);
+	}
+
+	function submitFilter(event: SubmitEvent) {
+		event.preventDefault();
+		commit({ q: filter, multiCase: directory.multiCase });
+	}
+
+	function setMultiCase(value: boolean | 'indeterminate') {
+		commit({ q: filter, multiCase: value === true });
+	}
+
+	function resetFilters() {
+		filter = '';
+		commit({ q: '', multiCase: false });
+	}
+
+	async function refresh(current: DirectoryQuery, token: number) {
+		try {
+			const first: PatientPage = await fetchPatientPage(current, null);
+			if (token !== requestId) return;
+			items = first.items;
+			nextCursor = first.nextCursor;
+			loading = false;
+		} catch {
+			if (token !== requestId) return;
+			items = [];
+			nextCursor = null;
+			loading = false;
+			failed = true;
+		}
+	}
+
+	async function loadMore() {
+		if (!nextCursor || loadingMore || loading || failed) return;
+		const cursor = nextCursor;
+		const current = directory;
+		const token = requestId;
+		loadingMore = true;
+		moreError = false;
+		try {
+			const next = await fetchPatientPage(current, cursor);
+			if (token !== requestId) return;
+			items = appendPatients(items, next.items);
+			nextCursor = next.nextCursor;
+		} catch {
+			if (token !== requestId) return;
+			moreError = true;
+		} finally {
+			if (token === requestId) loadingMore = false;
+		}
+	}
+
+	function retry() {
+		reloadNonce += 1;
+	}
 </script>
 
 <svelte:head>
-	<title>Patients · Consilium</title>
+	<title>Patients · {productName}</title>
 </svelte:head>
 
 <div class="page patients-page">
@@ -61,7 +146,7 @@
 			<Typography as="span" style="eyebrow" tone="accent">Longitudinal history</Typography>
 			<Typography as="h1" style="display">Patients</Typography>
 			<Typography tone="secondary">
-				Inspect longitudinal pathology timelines and search within a patient's prior specimens.
+				Inspect a patient's cases over time. Open cases stay unreported until sign-out.
 			</Typography>
 		</div>
 		<Button href="/" variant="ghost" icon="arrow-left">Back to worklist</Button>
@@ -69,28 +154,35 @@
 
 	<section class="surface patients-surface">
 		<div class="toolbar">
-			<TextField
-				bind:value={filter}
-				icon="search"
-				placeholder="Filter by patient ID (PT-…) or specialty…"
-				compact
-			/>
-			<CheckField bind:checked={multiOnly}>
+			<form class="filter-form" onsubmit={submitFilter} oninput={scheduleFilter}>
+				<TextField
+					bind:value={filter}
+					icon="search"
+					placeholder="Search by patient ID (PT-…) or label…"
+					compact
+					name="q"
+					type="search"
+				/>
+				<Button type="submit" variant="secondary" size="sm">Search</Button>
+			</form>
+			<label class="multi-case">
+				<Checkbox checked={directory.multiCase} onCheckedChange={setMultiCase} />
 				<Typography as="span" style="small">Multiple cases only</Typography>
-			</CheckField>
+			</label>
 		</div>
 
-		{#if screenState === 'error'}
+		{#if screen.kind === 'error'}
 			<div class="state-wrap">
 				<StateMessage
 					tone="danger"
-					title="Patients could not be loaded"
-					description="Check the API connection and try again."
-					action="Retry"
+					title={screen.title}
+					description={screen.description}
+					action={screen.action}
+					onaction={retry}
 				/>
 			</div>
-		{:else if screenState === 'loading'}
-			<div class="loading-list">
+		{:else if screen.kind === 'loading'}
+			<div class="loading-list" aria-busy="true">
 				{#each [0, 1, 2, 3] as row (row)}
 					<div class="loading-row">
 						<Skeleton width="short" height="lg" />
@@ -99,24 +191,36 @@
 					</div>
 				{/each}
 			</div>
-		{:else if filtered.length === 0}
+		{:else if screen.kind === 'empty-filter'}
 			<EmptyState
 				icon="search"
-				title="No patients match this filter"
-				description="Clear the search filter or include single-case patients."
-				action="Reset filters"
-				onaction={() => {
-					filter = '';
-					multiOnly = false;
-				}}
+				title={screen.title}
+				description={screen.description}
+				action={screen.action}
+				onaction={resetFilters}
+			/>
+		{:else if screen.kind === 'empty'}
+			<EmptyState
+				icon="database"
+				title={screen.title}
+				description={screen.description}
+				action={screen.action}
+				onaction={() => goto(resolve('/'))}
 			/>
 		{:else}
 			<div class="table-wrap">
 				<table>
+					<caption class="caption">
+						{rows.length}
+						{rows.length === 1 ? 'patient' : 'patients'}
+						{#if nextCursor}
+							· more available
+						{/if}
+					</caption>
 					<thead>
 						<tr>
 							<th>Patient</th>
-							<th>Demographics</th>
+							<th>Sex</th>
 							<th>Specialties</th>
 							<th>Cases</th>
 							<th>Latest accession</th>
@@ -125,20 +229,18 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each filtered as patient (patient.id)}
+						{#each rows as patient (patient.id)}
 							<tr>
 								<td>
-									<Button href={`/patients/${patient.id}`} variant="ghost" size="sm">
+									<Button href={patient.href} variant="ghost" size="sm">
 										{patient.displayLabel}
 									</Button>
 								</td>
 								<td>
-									<Typography style="small" tone="secondary">
-										{patient.sex} · born ~{patient.birthYear}
-									</Typography>
+									<Typography style="small" tone="secondary">{patient.sexSummary}</Typography>
 								</td>
 								<td>
-									<Typography style="small">{patient.specialties.join(' · ')}</Typography>
+									<Typography style="small">{patient.specialties}</Typography>
 								</td>
 								<td>
 									<div class="case-badges">
@@ -149,8 +251,8 @@
 										{#if patient.openCount > 0}
 											<Badge tone="warning">{patient.openCount} open</Badge>
 										{/if}
-										{#if patient.signedCount > 0}
-											<Badge tone="success">{patient.signedCount} signed out</Badge>
+										{#if patient.signedOutCount > 0}
+											<Badge tone="success">{patient.signedOutCount} signed out</Badge>
 										{/if}
 									</div>
 								</td>
@@ -160,15 +262,13 @@
 									</Typography>
 								</td>
 								<td>
-									{#if patient.isSyntheticLinkage}
-										<Badge tone="synthetic">Synthetic longitudinal link</Badge>
-									{:else}
-										<Badge tone="neutral">Single TCGA donor</Badge>
+									{#if patient.syntheticLinkage}
+										<Badge tone="synthetic">{SYNTHETIC_LINKAGE}</Badge>
 									{/if}
 								</td>
 								<td>
 									<Button
-										href={`/patients/${patient.id}`}
+										href={patient.href}
 										variant="ghost"
 										icon="chevron-right"
 										iconOnly
@@ -180,6 +280,24 @@
 					</tbody>
 				</table>
 			</div>
+			{#if moreError}
+				<div class="state-wrap">
+					<StateMessage
+						tone="danger"
+						title="More patients could not be loaded"
+						description="The patients already listed are unchanged."
+						action="Try again"
+						onaction={() => void loadMore()}
+					/>
+				</div>
+			{/if}
+			{#if nextCursor}
+				<div class="more">
+					<Button variant="secondary" disabled={loadingMore} onclick={() => void loadMore()}>
+						{loadingMore ? 'Loading…' : 'Load more'}
+					</Button>
+				</div>
+			{/if}
 		{/if}
 	</section>
 </div>
@@ -191,8 +309,31 @@
 	.patients-surface {
 		overflow: hidden;
 	}
-	.toolbar :global(.field) {
-		min-width: 20rem;
+	.filter-form {
+		display: flex;
+		flex: 1;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: var(--space-3);
+		min-width: min(100%, 18rem);
+	}
+	.filter-form :global(.field) {
+		min-width: min(100%, 16rem);
+		flex: 1;
+	}
+	.multi-case {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-height: var(--control-md);
+		cursor: pointer;
+	}
+	.caption {
+		padding: var(--space-3) var(--space-4) 0;
+		caption-side: top;
+		text-align: left;
+		color: var(--color-text-muted);
+		font: var(--font-label-sm);
 	}
 	.table-wrap {
 		overflow-x: auto;
@@ -238,7 +379,8 @@
 		padding: var(--space-4);
 		border-bottom: var(--border-width) solid var(--color-border);
 	}
-	.state-wrap {
-		padding: var(--space-6);
+	.state-wrap,
+	.more {
+		padding: var(--space-4);
 	}
 </style>
