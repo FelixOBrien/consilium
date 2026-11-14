@@ -12,6 +12,12 @@ uv run uvicorn consilium.api.app:app --reload <!-- pragma: allowlist secret -->
 
 `GET /api/health` returns `{"status":"ok"}`.
 
+Export the OpenAPI document and regenerate the web client (no database):
+
+```bash
+cd typescript && bun run gen:api
+```
+
 Postgres for local development is `docker compose up -d` from the repo root
 (`pgvector/pgvector:pg17`, database `consilium`). Then: <!-- pragma: allowlist secret -->
 

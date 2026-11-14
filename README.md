@@ -36,6 +36,8 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Library | [FastAPI](https://fastapi.tiangolo.com/) | HTTP API | MIT |
 | Library | [Uvicorn](https://www.uvicorn.org/) | ASGI server | BSD-3-Clause |
 | Library | [Pydantic](https://docs.pydantic.dev/) | API models and settings | MIT |
+| Library | [openapi-typescript](https://github.com/openapi-ts/openapi-typescript) | Generate the TypeScript API types | MIT |
+| Library | [openapi-fetch](https://github.com/openapi-ts/openapi-fetch) | Typed fetch client for the web app | MIT |
 | Library | [psycopg](https://www.psycopg.org/) | Postgres driver | LGPL-3.0 |
 | Library | [pgvector-python](https://github.com/pgvector/pgvector-python) | Postgres vector type | MIT |
 | Library | [PyTorch](https://pytorch.org/) | Pipeline embeddings, not the API install | BSD-3-Clause |
