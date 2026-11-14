@@ -69,7 +69,7 @@ All goals depend on it. Running a real ingestion in front of judges also shows t
 - `GET /api/ingestion/jobs` — recent jobs with stage and status.
 - `GET /api/ingestion/jobs/{id}` — one job with stage history and counts.
 
-The pipeline itself is a command-line program in `consilium.pipeline`, one subcommand per stage and one that runs them in order.
+The pipeline itself is a command-line program in `consilium.pipeline`, one subcommand per stage and one that runs them in order. <!-- pragma: allowlist secret -->
 
 ## Acceptance
 - The smoke tier (10 slides) runs end to end on one machine and the cases appear in the worklist with working slides and search.
@@ -79,4 +79,4 @@ The pipeline itself is a command-line program in `consilium.pipeline`, one subco
 
 ## Open questions
 - Resolution metadata in sampled TCGA `.svs` files (see [F-03](F03-slide-viewer.md)).
-- Lakebase storage available on Free Edition, which may cap the tier loaded there.
+- Lakebase Free Edition stores at most 512 MB ([context](../context.md#platform-databricks-free-edition)), which caps the tier loaded there. The manifest tiers are the subset that load can choose.

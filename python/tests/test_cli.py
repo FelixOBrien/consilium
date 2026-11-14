@@ -16,6 +16,7 @@ def test_help_exits_cleanly(capsys: pytest.CaptureFixture[str]) -> None:
     output = " ".join(capsys.readouterr().out.split())
     assert "serve" in output
     assert "pipeline" in output
+    assert "db" in output
     assert "not for clinical use" in output
 
 
@@ -34,6 +35,12 @@ def test_pipeline_help_does_not_claim_to_run(capsys: pytest.CaptureFixture[str])
 def test_unknown_command() -> None:
     with pytest.raises(SystemExit) as exc:
         main(["nope"])
+    assert exc.value.code == 2
+
+
+def test_db_requires_a_subcommand() -> None:
+    with pytest.raises(SystemExit) as exc:
+        main(["db"])
     assert exc.value.code == 2
 
 

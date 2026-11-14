@@ -30,6 +30,25 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
+    db = subcommands.add_parser("db", help="Apply or inspect database migrations")
+    db_commands = db.add_subparsers(dest="db_command", required=True)
+    db_commands.add_parser("status", help="Show which migration files are applied")
+    migrate_cmd = db_commands.add_parser(
+        "migrate",
+        help="Apply pending migrations. Index migrations can run separately",
+    )
+    mode = migrate_cmd.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--schema-only",
+        action="store_true",
+        help="Apply table migrations and skip HNSW and GIN indexes",
+    )
+    mode.add_argument(
+        "--indexes-only",
+        action="store_true",
+        help="Apply HNSW and GIN index migrations only",
+    )
+
     args = parser.parse_args(argv)
     if args.command == "serve":
         uvicorn.run(
@@ -42,5 +61,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "pipeline":
         pipeline.print_help()
         return 0
+    if args.command == "db":
+        from consilium.db.migrate import run_db_command  # pragma: allowlist secret
+
+        return run_db_command(args)
     parser.print_help()
     return 0
