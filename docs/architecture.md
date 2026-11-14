@@ -104,7 +104,10 @@ Environment variables, read through one settings module. `.env.example` lists th
 | `LLM_PROVIDER` | `anthropic` \| `databricks` | Where the agent's model calls go. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | secret, model id | Agent model. |
 | `HF_TOKEN` | secret | Gated CONCH-Z and CONCH v1.5 weights. TCGA slides and reports need no token. |
-| `DATABRICKS_HOST`, `DATABRICKS_TOKEN` | secret | Volume access and deployment from outside Databricks. |
+| `DATABRICKS_HOST`, `DATABRICKS_TOKEN` | secret | Volume access and deployment from outside Databricks. Clients strip a trailing `/` from the host before joining an API path. |
+| `MLFLOW_TRACING_ENABLED` | `true` \| `false` | Log each consult turn as an MLflow trace. Default `false`: the agent does not import MLflow and does not call Databricks. |
+| `MLFLOW_EXPERIMENT_NAME` | path | Experiment for those traces. Default `/Shared/consilium-consult`. | <!-- pragma: allowlist secret -->
+| `MLFLOW_TRACKING_URI` | `databricks` or a directory | Where traces go. Unset means `databricks`, using `DATABRICKS_HOST` and `DATABRICKS_TOKEN`. A local directory is the file store used in tests. Tracing stays off when the Databricks target is selected and either credential is missing. |
 
 ## Data layout
 

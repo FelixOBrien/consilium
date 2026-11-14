@@ -47,6 +47,7 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Library | [Hugging Face Hub](https://github.com/huggingface/huggingface_hub) | Model download for the pipeline | Apache-2.0 |
 | Library | [OpenSlide](https://openslide.org/) (`openslide-python`, `openslide-bin`) | SVS header reads, fixture slides, and Deep Zoom tiles from the original slide file. The wheel bundles the library, so no system packages are required. | LGPL-2.1 |
 | Library | [Databricks SDK for Python](https://github.com/databricks/databricks-sdk-py) | Fetch slides from a Unity Catalog Volume into the local cache | Apache-2.0 |
+| Library | [MLflow Tracing](https://mlflow.org/docs/latest/genai/tracing/lightweight-sdk/) (`mlflow-tracing`) | Optional consult-turn traces. The lightweight SDK, not the full MLflow package. Off unless `MLFLOW_TRACING_ENABLED` is set. | Apache-2.0 |
 | Library | [PyArrow](https://arrow.apache.org/) | Cohort manifest clinical table (`gdc_cases.parquet`) | Apache-2.0 |
 | Library | [NumPy](https://numpy.org/) | Synthetic fixture images and unit vectors | BSD-3-Clause |
 | Library | [h5py](https://www.h5py.org/) | Read and validate TRIDENT coordinate and feature files | BSD-3-Clause |
