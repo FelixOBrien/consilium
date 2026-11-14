@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import argparse
+import sys
 
 import uvicorn
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entrypoint. `serve` runs the API. Ingestion stages are not implemented here."""
+    """CLI entrypoint. `serve` runs the API. `pipeline` runs offline ingestion."""
+    args_list = list(sys.argv[1:] if argv is None else argv)
+    if args_list and args_list[0] == "pipeline":
+        from consilium.pipeline.__main__ import main as pipeline_main  # pragma: allowlist secret
+
+        return pipeline_main(args_list[1:])
     parser = argparse.ArgumentParser(
         prog="consilium",  # pragma: allowlist secret
         description=(
@@ -21,13 +27,9 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument("--port", type=int, default=8000)
     serve.add_argument("--reload", action="store_true")
 
-    pipeline = subcommands.add_parser(
+    subcommands.add_parser(
         "pipeline",
-        help="Offline ingestion entrypoint (stages are not implemented yet)",
-        description=(
-            "Ingestion stages ship with the pipeline work. "
-            "This command does not download slides, embed tissue, or write to the database."
-        ),
+        help="Offline ingestion: manifest through load",
     )
 
     db = subcommands.add_parser("db", help="Apply or inspect database migrations")
@@ -57,9 +59,6 @@ def main(argv: list[str] | None = None) -> int:
             port=args.port,
             reload=args.reload,
         )
-        return 0
-    if args.command == "pipeline":
-        pipeline.print_help()
         return 0
     if args.command == "db":
         from consilium.db.migrate import run_db_command  # pragma: allowlist secret

@@ -116,7 +116,7 @@ data/                              # local, git-ignored; mirrored under the Volu
   slides/{slide_id}.svs            # original Aperio SVS from the GDC
   trident/                         # TRIDENT job dir: coords and raw features (H5)
   thumbs/{slide_id}.pack           # concatenated patch JPEGs
-  export/*.parquet                 # pathologist, patient, case, slide, report, report_chunk, patch
+  export/*.parquet                 # pathologist, patient, path_case, slide, report, report_chunk, concept, patch
 ```
 
 Delta tables mirror the parquet files: `bronze` as landed, `silver` typed and deduplicated, `gold` joined for serving. Lakebase is loaded from gold.
