@@ -33,6 +33,7 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Model | [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) | Report chunk embeddings | MIT |
 | Library | [TRIDENT](https://github.com/mahmoodlab/TRIDENT) | Tissue segmentation, patching, feature extraction | See repository |
 | API | Anthropic Claude API | Consult agent | — |
+| Library | [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python) | Streaming tool-use loop for the consult agent | MIT |
 | Library | [FastAPI](https://fastapi.tiangolo.com/) | HTTP API | MIT |
 | Library | [Uvicorn](https://www.uvicorn.org/) | ASGI server | BSD-3-Clause |
 | Library | [Pydantic](https://docs.pydantic.dev/) | API models and settings | MIT |
