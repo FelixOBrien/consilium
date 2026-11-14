@@ -2,7 +2,8 @@
 
 ``manifest`` builds the stage-1 cohort. ``download`` fetches SVS files.
 ``extract`` reads SVS headers and runs TRIDENT segmentation, patching, and
-``conch_v15`` features.
+``conch_v15`` features. ``project`` maps those features into CONCH-Z.
+``thumbs`` writes patch thumbnail packs. ``export`` writes parquet tables.
 """
 
 from __future__ import annotations
