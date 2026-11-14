@@ -20,6 +20,8 @@
 		writeCompareQuery
 	} from '#lib/compare/url.js';
 
+	const pageTitle = 'Compare slides · Consilium'; // pragma: allowlist secret
+
 	const initial = parseCompareQuery(page.url.searchParams);
 	const paired = hasSlidePair(initial);
 	const slides = paired ? { left: initial.left, right: initial.right } : null;
@@ -124,7 +126,7 @@
 </script>
 
 <svelte:head>
-	<title>Compare slides · Consilium</title> <!-- pragma: allowlist secret -->
+	<title>{pageTitle}</title>
 </svelte:head>
 
 <div class="compare-page" data-screen="compare">
