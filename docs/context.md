@@ -131,19 +131,78 @@ Virchow2 was the alternative considered. See [architecture.md](architecture.md#d
 
 ## Platform: Databricks Free Edition
 
-From the [limitations page](https://docs.databricks.com/aws/en/getting-started/free-edition-limitations):
+Checked against the live Free Edition account and its Lakebase project on Sat 14 Nov 2026. The published limits are from the [limitations page](https://docs.databricks.com/aws/en/getting-started/free-edition-limitations) (page updated 18 Oct 2026). Numbers that page does not give were read from the account the same day.
 
 | Limit | Effect on the design |
 | --- | --- |
-| Serverless compute only; no GPU serving, no custom models on GPU | Embeddings are computed off-platform on a rented GPU. Query-time text encoding runs on CPU in the app. |
-| Outbound internet restricted to a set of trusted domains (list not published) | *Unverified* whether the Anthropic API is reachable from an App. The LLM provider is configurable and this is tested early. |
-| One Lakebase project, scale to zero | One Postgres database for everything served. |
-| Up to 3 Apps; each stops 24 hours after start or redeploy | Restart the App on Sunday morning before judging. |
-| Apps are not publicly accessible | The demo runs from an authenticated browser session, or from the laptop. |
-| No custom storage locations; daily fair-use compute quota | Files are pushed into a managed Unity Catalog Volume. Heavy compute stays off Databricks. |
-| Non-commercial use only | Matches the model licences. |
+| Serverless compute only. No GPU serving, no custom models on GPU, no provisioned throughput. | Embeddings are computed off-platform on a rented GPU. Query-time text encoding runs on CPU in the app. |
+| Outbound internet is limited to an unpublished trusted-domain list. | Serverless compute can reach `https://api.anthropic.com` and `https://huggingface.co`. Details below. The App itself is still started in the deploy issue, and the laptop remains a fallback. |
+| One Lakebase project (Postgres 17) in AWS `us-east-2`. This project's read-write endpoint is fixed at 1 CU and suspends after 24 hours idle. | One Postgres database for everything served. The index build cannot ask this endpoint for a larger CU. |
+| Durable Lakebase cap is 512 MB. Logical size on 14 Nov 2026 was 31 MB. | The full demo-tier patch table does not fit. Load a subset. Details below. |
+| Up to 3 Apps. Each stops 24 hours after start or redeploy. The Apps API listed none. | Restart the App on Sunday morning before judging. |
+| No custom storage locations. One metastore. Fair-use compute, and no published gigabyte quota for Volumes. | Slides and packs go in managed volume `raw`. Heavy compute stays off Databricks. |
+| One AI Search endpoint, one search unit, and no Direct Vector Access. None is created in this account. | Search stays in pgvector. |
+| Non-commercial use only. | Matches the model licences. |
 
-Lakebase Search adds `lakebase_ann` and `lakebase_bm25` index types on top of pgvector. Enabling it cannot be undone and restarts compute, so the baseline is plain pgvector and `tsvector`.
+Lakebase Search is off. `lakebase_ann` and `lakebase_bm25` are not installable here. `lakebase_vector`, `lakebase_text` and `lakebase_tokenizer` are allow-listed and were left uninstalled. Enabling Search cannot be undone and restarts compute, so the baseline stays plain pgvector and `tsvector`.
+
+### External Postgres
+
+`psql` 16 and `psycopg` 3 both connect from outside the account. The URL uses `sslmode=require` on port 5432; the session negotiated TLS 1.3 (`TLS_AES_256_GCM_SHA384`). The database name is `databricks_postgres`. Server version is PostgreSQL 17.12 on aarch64. A connection took 66 ms and `SELECT 1` took 2–3 ms.
+
+Login is a native Postgres role: the project's `enable_pg_native_login` is on, and the configured password is not an OAuth token, so this URL does not expire hourly. The endpoint is `primary` on branch `production`, type read-write, state ACTIVE when probed. `max_connections` is 225. `shared_buffers` is 128 MB. A local file cache of about 1.5 GB sits beside that and is not extra durable storage.
+
+The `vector` extension 0.8.7 is installed in `public` and stays installed. `public` has no tables.
+
+### pgvector and full text
+
+Inside a temporary schema, these all succeeded, and `EXPLAIN ANALYZE` used the indexes:
+
+- HNSW on `halfvec(768)` with `halfvec_cosine_ops` (`<=>`) and `halfvec_ip_ops` (`<#>`)
+- HNSW on `vector(384)` with `vector_cosine_ops` (`<=>`)
+- GIN on a stored `tsvector` column (`@@`)
+
+The schema was then dropped. Native pgvector answers both ANN and keyword search. Lakebase Search was not turned on.
+
+### Volume and storage
+
+Managed volume `raw` already exists at `/Volumes/<catalog>/<schema>/raw`. A 13-byte probe file uploaded through the Files API in about 300 ms, downloaded back unchanged, and was deleted. The volume root was empty afterwards. Neither the Files API nor the limitations page returns a volume capacity. Slide files for the demo tier (up to about 200 GB with the 1 GB per-slide cap) land in this volume under the fair-use policy.
+
+Lakebase is the measured cap. `neon.max_cluster_size` is 512 MB and the branch's logical size was 32,481,280 bytes (31 MB), which matches the nearly empty databases. A `halfvec(768)` value is 1,536 bytes. At about 3,000 patches a slide, 200 slides are about 600,000 values and about 880 MB of raw vectors, before the HNSW graph and the heap. That is already over 512 MB. Report-chunk `vector(384)` rows are a few megabytes and do fit. The load into Lakebase has to be a measured subset that stays under 512 MB with its indexes. The rest can stay in local Postgres.
+
+### Foundation models
+
+`GET /api/2.0/serving-endpoints` returned 11 READY pay-per-token Foundation Model endpoints and no custom endpoints. None is Claude. Calls bill Databricks units under the fair-use quota, not the $50 Anthropic credit. Claude stays on `ANTHROPIC_API_KEY`.
+
+| Endpoint | Task |
+| --- | --- |
+| `databricks-gpt-oss-120b`, `databricks-gpt-oss-20b` | chat |
+| `databricks-qwen3-next-80b-a3b-instruct`, `databricks-qwen35-122b-a10b` | chat |
+| `databricks-gemma-3-12b` | chat |
+| `databricks-meta-llama-3-1-8b-instruct`, `databricks-meta-llama-3-3-70b-instruct` | chat |
+| `databricks-llama-4-maverick` | chat |
+| `databricks-gte-large-en`, `databricks-bge-large-en`, `databricks-qwen3-embedding-0-6b` | embeddings |
+
+A call to `databricks-meta-llama-3-1-8b-instruct` (20 tokens) returned the word Pong, and a second call made it invoke a tool. `databricks-bge-large-en` returned a 1,024-dimensional vector. That space is separate from the 384-d report embeddings and the 768-d CONCH-Z embeddings, and the two are not compared.
+
+### Apps and outbound HTTPS
+
+The Apps API is enabled and listed zero apps. A one-off serverless notebook job (standard performance, environment version 2) then made outbound HTTPS and was deleted, along with its notebook and result file:
+
+| Target | Result |
+| --- | --- |
+| `https://api.anthropic.com` | HTTP 404 from the host (the bare origin has no route; the connection was accepted) |
+| `https://huggingface.co` | HTTP 200 |
+
+So both hosts are on the trusted-domain list for serverless compute. The job is not an App process. The deploy issue still does one call from the App. MLflow accepted creating and deleting an experiment, which is the tracing API the consult agent needs.
+
+The configured account host has a trailing slash. Clients strip it before joining an API path.
+
+### What this changes for later work
+
+- The Lakebase load keeps `SEARCH_BACKEND=pgvector`, uses that `raw` volume, and loads only a subset that fits in 512 MB with HNSW. It does not enable Lakebase Search and does not install `lakebase_vector`.
+- Consult-agent tracing can use the Databricks MLflow tracking API on this account.
+- The App keeps `LLM_PROVIDER=anthropic`. A Databricks chat endpoint is a different client and a different model, available if the App cannot reach Anthropic. Restart the App on Sunday morning.
 
 ## GPU compute
 
