@@ -58,7 +58,7 @@ cd typescript && bun run check-types && bun run lint
 
 ## Conventions
 
-**Python** — 3.12, `uv`, `ruff`, type hints everywhere, Pydantic v2 for every API shape, `psycopg` 3 with parameterised SQL (no ORM, no string-built SQL). Routers stay thin; queries live in `consilium/db/` and `consilium/search/`.
+**Python** — 3.12 for local development (`.python-version`). The package declares `requires-python >= 3.11` and avoids 3.12-only syntax so the same code runs on Databricks Apps. `uv`, `ruff`, type hints everywhere, Pydantic v2 for every API shape, `psycopg` 3 with parameterised SQL (no ORM, no string-built SQL). Routers stay thin; queries live in `consilium/db/` and `consilium/search/`. <!-- pragma: allowlist secret -->
 
 **TypeScript** — SvelteKit with Svelte 5 runes, built as a static SPA. shadcn-svelte components and Tailwind. Server state goes through the generated API client. Create projects and add components with the current CLIs rather than pinning versions from memory.
 

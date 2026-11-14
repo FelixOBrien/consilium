@@ -21,7 +21,7 @@ Built at Imperial AI Hack, 13–15 November 2026, for the Autonomous Agents trac
 | `python/` | FastAPI API, search, agent, tile server and ingestion pipeline |
 | `typescript/` | SvelteKit web app |
 
-Setup and run instructions are added as the scaffolds land.
+Python setup is in [python/README.md](python/README.md). Web setup is added as that scaffold lands.
 
 ## Models, datasets and APIs used
 
@@ -33,6 +33,16 @@ Setup and run instructions are added as the scaffolds land.
 | Model | [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) | Report chunk embeddings | MIT |
 | Library | [TRIDENT](https://github.com/mahmoodlab/TRIDENT) | Tissue segmentation, patching, feature extraction | See repository |
 | API | Anthropic Claude API | Consult agent | — |
+| Library | [FastAPI](https://fastapi.tiangolo.com/) | HTTP API | MIT |
+| Library | [Uvicorn](https://www.uvicorn.org/) | ASGI server | BSD-3-Clause |
+| Library | [Pydantic](https://docs.pydantic.dev/) | API models and settings | MIT |
+| Library | [psycopg](https://www.psycopg.org/) | Postgres driver | LGPL-3.0 |
+| Library | [pgvector-python](https://github.com/pgvector/pgvector-python) | Postgres vector type | MIT |
+| Library | [PyTorch](https://pytorch.org/) | Pipeline embeddings, not the API install | BSD-3-Clause |
+| Library | [timm](https://github.com/huggingface/pytorch-image-models) | Pipeline vision backbones | Apache-2.0 |
+| Library | [Transformers](https://github.com/huggingface/transformers) | CONCH-Z and report encoders | Apache-2.0 |
+| Library | [Hugging Face Hub](https://github.com/huggingface/huggingface_hub) | Model download for the pipeline | Apache-2.0 |
+| Library | [OpenSlide](https://openslide.org/) (`openslide-python`, `openslide-bin`) | Tile server, optional install | LGPL-2.1 |
 | Platform | Databricks Free Edition (Unity Catalog, Delta, Lakebase, Apps) | Lakehouse, vector search, app hosting | — |
 
 Pathologist identities, sign-out dates, case assignments and multi-donor longitudinal patient links are synthetic: TCGA reports are de-identified and do not identify report authors or longitudinal clinical accessions.

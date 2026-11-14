@@ -32,5 +32,4 @@ jobs:
           enable-cache: true
           cache-dependency-glob: python/uv.lock
       - run: uv sync --frozen
-      - run: uv run black --check .
-      - run: uv run pytest -q
+      - run: uv run ruff check . && uv run pytest -q
