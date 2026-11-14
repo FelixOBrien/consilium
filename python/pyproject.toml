@@ -4,12 +4,16 @@ version = "0.1.0"
 description = "Histopathology case retrieval API. Research prototype, not for clinical use."
 readme = "README.md"
 requires-python = ">=3.11"
-# numpy, pillow and tifffile write the synthetic fixture slides. `db seed` uses them
-# on the default install. OpenSlide stays in the optional `tiles` group.
+# numpy, pillow and tifffile write the synthetic fixture slides. OpenSlide
+# (openslide-python + the openslide-bin wheel) is part of the API install so the
+# tile server and CI do not need apt packages. The Databricks SDK is the Volume client.
 dependencies = [
     "anthropic>=0.40",
+    "databricks-sdk>=0.40",
     "fastapi>=0.115",
     "numpy>=2.4.6",
+    "openslide-bin>=4.0",
+    "openslide-python>=1.4",
     "pgvector>=0.3",
     "pillow>=13.0.0",
     "psycopg[binary,pool]>=3.2",
@@ -30,27 +34,19 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/consilium"] # pragma: allowlist secret
 
-# Dependency groups: `uv sync` installs the API and dev tools only.
+# Dependency groups: `uv sync` installs the API (including OpenSlide) and dev tools.
 # `pipeline` is the GPU stack (torch, timm, transformers). Mahmood Lab TRIDENT
 # is not on PyPI — the PyPI project "trident" is an unrelated astronomy package —
 # so it is installed from GitHub on the GPU machine, not locked here.
-# `tiles` is OpenSlide for the tile server, SVS headers, and thumbnail packs.
-# It stays optional so API and Databricks App startup do not download it.
-# `dev` also installs OpenSlide, Pillow, and tifffile so CI can build a
-# pyramidal TIFF and check thumbnail packs. `h5py` is in both `dev` and
-# `pipeline`: CI validates TRIDENT H5 files, and `uv sync --group pipeline`
-# on the GPU box can validate them too.
+# `h5py` is in both `dev` and `pipeline`: CI validates TRIDENT H5 files, and
+# `uv sync --group pipeline` on the GPU box can validate them too.
 
 [dependency-groups]
 dev = [
     "h5py>=3.11",
     "httpx>=0.27",
-    "openslide-bin>=4.0",
-    "openslide-python>=1.4",
-    "pillow>=13.0.0",
     "pytest>=8",
     "ruff>=0.8",
-    "tifffile>=2026.3.3",
 ]
 pipeline = [
     "h5py>=3.11",
@@ -59,11 +55,6 @@ pipeline = [
     "torch>=2.4",
     "torchvision>=0.19",
     "transformers>=4.45",
-]
-tiles = [
-    "openslide-bin>=4.0",
-    "openslide-python>=1.4",
-    "pillow>=13.0.0",
 ]
 
 [tool.uv]

@@ -28,6 +28,7 @@ from consilium.api.store import Store  # pragma: allowlist secret
 from consilium.config import Settings, get_settings  # pragma: allowlist secret
 from consilium.db.connection import connection_pool  # pragma: allowlist secret
 from consilium.embed.text import build_text_encoders  # pragma: allowlist secret
+from consilium.tiles.store import SlideStore  # pragma: allowlist secret
 
 API_DESCRIPTION = (
     "Research prototype. Not a medical device and not for clinical use. "
@@ -51,13 +52,18 @@ def create_app(settings: Settings | None = None, *, use_stub_store: bool = False
             app.state.text_encoders = build_text_encoders(cfg)
         if use_stub_store:
             app.state.pool = None
+            app.state.slide_store = None
             yield
             return
         pool = connection_pool(cfg.database_url, min_size=0, max_size=8, open=True)
         app.state.pool = pool
         try:
+            app.state.slide_store = SlideStore(cfg)
             yield
         finally:
+            slide_store = getattr(app.state, "slide_store", None)
+            if slide_store is not None:
+                slide_store.close()
             pool.close()
 
     app = FastAPI(
