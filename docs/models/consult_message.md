@@ -38,7 +38,7 @@ One turn in a consult thread: a pathologist's question, or the agent's answer wi
 ## Rules
 1. `ranking` is copied from the `rank_pathologists` tool result, not parsed from the model's text. Each entry's `case_count` equals the length of its `case_ids` (F-07.5).
 2. Every case ID in `citations` and `ranking` was returned by a tool in the same turn. An ID the model produced that no tool returned is dropped before saving.
-3. No case in `citations` is the thread's own case, an open case, or a held-out case.
+3. No case in `citations` is the thread's own case, an open case, or a held-out case. Signed-out prior cases of the *same* patient may be cited (and are marked `same_patient: true` through their `CaseSummary`).
 4. The assistant row is inserted as `streaming` when the turn starts and updated to `complete` or `error` when it ends.
 
 ## Source

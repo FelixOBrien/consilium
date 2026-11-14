@@ -6,12 +6,17 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "format:check": "prettier --check \"**/*.{ts,tsx,svelte,js,css,md}\"",
+    "check-types": "turbo run check-types",
+    "typecheck": "turbo run typecheck",
+    "test": "bun test --pass-with-no-tests"
   },
   "devDependencies": {
     "prettier": "3.9.6",
+    "prettier-plugin-svelte": "^4.1.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "turbo": "^2.11.11",
-    "typescript": "7.0.2"
+    "typescript": "6.0.3"
   },
   "engines": {
     "node": ">=24"

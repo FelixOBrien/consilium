@@ -4,7 +4,7 @@ title: Search
 route: /search
 status: planned
 priority: P0
-features: [F-02]
+features: [F-02, F-12]
 stories: [US-02.1, US-02.2, US-02.3]
 figma: ""
 linear: [SKO-281]
@@ -24,8 +24,8 @@ The pathologist searches every case from anywhere in the app, by report text or 
 | Region | Contains |
 | --- | --- |
 | Query | The search text and a mode switch between **Reports** and **Tissue** (F-02.2, F-02.5). |
-| Filters | Status, specialty, ICD-10 prefix (F-02.6). |
-| Result list, Reports mode | One entry per case: case ID, specialty, patient age and sex, ICD-10, author, the best-matching passage with matched terms marked, and whether it matched by keyword, meaning or both (F-02.4). |
+| Filters | Status, specialty, ICD-10 prefix, optional `patient_id` chip when scoped to a patient (F-02.6, F-12.4). |
+| Result list, Reports mode | One entry per case: case ID, patient (`display_label` linking to S-09), specialty, patient age and sex, ICD-10, author, the best-matching passage with matched terms marked, and whether it matched by keyword, meaning or both (F-02.4). |
 | Result list, Tissue mode | One entry per case: the same case summary, up to three matching patch thumbnails, and the first line of the conclusion. |
 | Result actions | Per result: Peek, Open. |
 | Summary | Number of cases found and server time. |

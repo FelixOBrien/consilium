@@ -36,7 +36,7 @@ A member of the synthetic roster. A pathologist is both a report author, which t
 3. Names are invented and must not be those of real, identifiable pathologists.
 
 ## Source
-Seeded from a file in the repository at pipeline stage 7. Entirely synthetic: HistAI has no author information ([context.md](../context.md#what-the-dataset-does-not-have)).
+Seeded from a file in the repository at pipeline stage 7. Entirely synthetic: TCGA reports carry no author information ([context.md](../context.md#what-the-dataset-does-not-have)).
 
 ## API shape
 `Pathologist` — all fields. `PathologistRef` — `id`, `name`, `primary_specialty`, `is_synthetic`, embedded in cases, reports and annotations.

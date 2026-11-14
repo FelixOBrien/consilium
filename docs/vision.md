@@ -36,14 +36,15 @@ We shift the focus from deploying AI models for diagnostic purposes to treating 
 
 We build an application that facilitates basic pathologist workflows:
 - Viewing a worklist of cases and searching it
+- Reviewing a patient's longitudinal history across multiple cases
 - Viewing the whole slide images for a case
 - Viewing the report for a case
 - Annotating a slide
 - Ingesting a new slide
 
 We augment this with vector search and agent capabilities:
-- Vector search over slide patches and reports, from inside a case, to find relevant tissue and relevant cases
-- An agent that searches, reads the reports it finds and summarises them, including who would be best to consult
+- Vector search over slide patches and reports, across the corpus or scoped to a single patient, to find relevant tissue and relevant cases
+- An agent that reviews the patient's previous cases, searches corpus precedent, reads the reports it finds and summarises them, including who would be best to consult
 - Heatmaps that map a phrase from a report onto the regions of the slide it describes
 
 Producing and sharing reports between pathologists is part of the longer-term product but is not built for the hackathon. The feature register in [features/index.md](features/index.md) is the authoritative scope.
@@ -58,7 +59,7 @@ The hackathon demo succeeds if, live and without a script failure, a judge sees:
 4. The consult agent answering "who should I consult on this case?" with named pathologists, counts and cited cases.
 5. The same data flowing through a Databricks pipeline into the store the app queries.
 
-Measured check: for held-out cases, the share of top-5 retrieved cases with the same ICD-10 category as the held-out report, reported for morphology search and report search (see [F-10](features/F10-retrieval-evaluation.md)).
+Measured check: for held-out cases, the share of top-5 retrieved cases matching the held-out case's withheld ICD-O-3 morphology group and ICD-10 category, reported for morphology search and report search (see [F-10](features/F10-retrieval-evaluation.md)).
 
 ## Tech stack
 

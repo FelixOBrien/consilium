@@ -25,8 +25,8 @@ The pathologist reads the case's report next to its slide, and uses its wording 
 | Region | Contains |
 | --- | --- |
 | Report header | Author, sign-out date, the mark that both are synthetic. For an open case: the not-yet-reported notice. |
-| Sections | Clinical history, gross description, microscopic description, conclusion, differential diagnosis, additional information, ICD-10, in that order, omitting empty ones. For an open case: clinical history only. |
-| Selection actions | Appears when text is selected: Show on slide, Find cases like this. |
+| Sections | Extracted non-empty sections in order (clinical history, gross description, microscopic description, conclusion, additional information, ICD-10) plus access to the full OCR report `body` (shown directly when no post-history sections were extracted). For an open case: clinical history only. |
+| Context terms | Informative non-stop words reveal themselves on hover or focus. Selecting one maps its embedding similarity on the open slide. |
 
 ## Data
 
@@ -38,9 +38,9 @@ The pathologist reads the case's report next to its slide, and uses its wording 
 
 | Action | Result | API |
 | --- | --- | --- |
-| Select text | Selection actions appear (F-04.4). | — |
-| Show on slide | A heatmap for the selected text is drawn on the open slide; the heatmap controls in S-02 show the phrase (F-06.9). | `POST /api/slides/{id}/heatmap` |
-| Find cases like this | Evidence panel opens in Reports mode with the selected text as the query (F-05 Q5). | `POST /api/search/reports` |
+| Hover or focus a target word | Its embedding-target state appears without changing the report text (F-04.4, F-06.2). | — |
+| Select a target word | A word-to-patch similarity overlay is drawn on the open slide and names the word (F-06.3, F-06.6). | `POST /api/slides/{id}/heatmap` |
+| Clear the active word | The word-to-patch overlay is removed (F-06.7). | — |
 | Select the author | Opens S-01 filtered to that pathologist's signed-out cases (F-04.6). | — |
 
 ## States

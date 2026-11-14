@@ -45,8 +45,8 @@ G1 and G3. This is the product's core claim: precedent for what is on screen, re
 3. Q2 with a region covering no patches returns a validation error naming the problem.
 4. Q3 returns cases ordered by slide-vector similarity, each with its three patches closest to the query slide's vector.
 5. Q5 fuses keyword and semantic ranks by reciprocal rank (constant 60) and returns cases with the best-matching passage.
-6. Every case result carries: case ID, specialty, ICD-10, first line of the conclusion, author, score, and for patch queries each patch's slide, coordinates and thumbnail URL.
-7. Filters apply before ranking: specialty, stain, ICD-10 prefix. Default is no filter, so matches across organs are allowed.
+6. Every case result carries: case ID, patient (`PatientRef`), `same_patient` (true when the hit case shares `patient_id` with `context_case_id`, [F-12](F12-patient-history.md) rule 6), specialty, ICD-10, `conclusion_line`, author, score, and for patch queries each patch's slide, coordinates and thumbnail URL.
+7. Filters apply before ranking: `patient_id`, specialty, stain, ICD-10 prefix. Default is no filter, so matches across organs and patients are allowed.
 8. Results return 20 cases by default, at most 50.
 9. A patch query with scope `slide` searches only the open slide and returns patches, not cases. This finds other regions of the same slide that look alike (P1).
 10. Opening a result navigates to that case with the viewer centred on the patch ([F-03](F03-slide-viewer.md) rule 5). Peeking shows the patch and report without leaving the open case.

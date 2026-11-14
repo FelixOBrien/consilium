@@ -4,7 +4,7 @@ title: Worklist
 route: /
 status: planned
 priority: P0
-features: [F-01, F-02]
+features: [F-01, F-02, F-12]
 stories: [US-01.1, US-01.2, US-01.3]
 figma: ""
 linear: [SKO-262]
@@ -26,7 +26,7 @@ The pathologist sees the cases waiting for them, browses or filters all cases, a
 | --- | --- |
 | View switch | My cases and All cases, with the count of each. |
 | Filters | Status, specialty, assigned pathologist, ICD-10 prefix. A control to clear all. |
-| Case list | One row per case: case ID, slide thumbnail, specialty, patient age and sex, status, assigned pathologist, slide count, ICD-10, and for signed-out cases the first line of the conclusion. |
+| Case list | One row per case: case ID, slide thumbnail, patient (`display_label`, prior-case indicator when `case_count > 1`, linking to S-09), specialty, patient age and sex, status, assigned pathologist, slide count, ICD-10, and for signed-out cases `conclusion_line`. |
 | Pagination | Loads the next 50 when the end of the list is reached. |
 
 ## Data
@@ -45,6 +45,7 @@ The pathologist sees the cases waiting for them, browses or filters all cases, a
 | Change a filter | List reloads from the first page; filter set in the URL (F-01.5). | `GET /api/cases` |
 | Clear filters | All filters removed. | `GET /api/cases` |
 | Select a case | Opens S-02 for that case (F-01.6). | — |
+| Select a patient | Opens S-09 for that patient (F-12.1). | — |
 | Reach end of list | Next page appended (F-01.1). | `GET /api/cases?cursor=` |
 | Change acting pathologist | Identity stored in the browser; My cases reloads (F-01.7). | `GET /api/me`, `GET /api/cases` |
 
