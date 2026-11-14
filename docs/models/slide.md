@@ -43,7 +43,7 @@ One whole slide image belonging to a case: where its file is, its geometry, and 
 ## Rules
 1. `embedding` and `thumb_pack_key` are set exactly when `status = 'ready'`.
 2. `mpp` and `magnification` come from the SVS header (`openslide.mpp-x` / `aperio.MPP` and `openslide.objective-power` / `aperio.AppMag`, typically 0.25 µm/px at 40x or 0.50 µm/px at 20x), falling back to manifest values when absent.
-3. The file at `storage_key` is the original Aperio SVS file; tiles are cut from it on request ([architecture D7](../architecture.md#decisions)).
+3. The file at `storage_key` is the original Aperio SVS file; tiles are cut from it on request ([architecture D7](../architecture.md#decisions)). The fixture command `db seed` may write a synthetic multi-resolution tiled TIFF at that key instead. OpenSlide reads it the same way as an SVS file and reports level-0 dimensions equal to `width` and `height`.
 
 ## Source
 Geometry is read from the file at pipeline stage 3. `embedding` is computed at stage 5. `status` is advanced by the pipeline or the worker.

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query, Response
+from fastapi import APIRouter, Path, Query, Request, Response
 
-from consilium.api.deps import Acting, StoreDep  # pragma: allowlist secret
+from consilium.api.deps import Acting, DbConn, StoreDep  # pragma: allowlist secret
+from consilium.api.errors import fail  # pragma: allowlist secret
 from consilium.api.placeholders import PLACEHOLDER_JPEG, dzi_document  # pragma: allowlist secret
 from consilium.api.schemas.concept import (  # pragma: allowlist secret
     HeatmapRequest,
@@ -12,6 +13,7 @@ from consilium.api.schemas.concept import (  # pragma: allowlist secret
 )
 from consilium.api.schemas.patch import PatchRef  # pragma: allowlist secret
 from consilium.api.schemas.slide import SlideDetail  # pragma: allowlist secret
+from consilium.db.concepts import heatmap_for  # pragma: allowlist secret
 
 router = APIRouter(tags=["slides"])
 
@@ -90,8 +92,15 @@ def get_patch_at(
 def create_slide_heatmap(
     slide_id: str,
     body: HeatmapRequest,
+    request: Request,
     _actor: Acting,
     store: StoreDep,
+    db: DbConn,
 ) -> HeatmapResponse:
     """Score patches against a report word (`text`) or an optional concept."""
-    return store.heatmap(slide_id, body)
+    if request.app.state.use_stub_store:
+        return store.heatmap(slide_id, body)
+    encoders = getattr(request.app.state, "text_encoders", None)
+    if encoders is None:
+        fail(500, "error", "Text encoder is not configured.")
+    return heatmap_for(db, encoders, slide_id, body)

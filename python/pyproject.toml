@@ -4,15 +4,19 @@ version = "0.1.0"
 description = "Histopathology case retrieval API. Research prototype, not for clinical use."
 readme = "README.md"
 requires-python = ">=3.11"
+# numpy, pillow and tifffile write the synthetic fixture slides. `db seed` uses them
+# on the default install. OpenSlide stays in the optional `tiles` group.
 dependencies = [
     "anthropic>=0.40",
     "fastapi>=0.115",
     "numpy>=2.4.6",
     "pgvector>=0.3",
+    "pillow>=13.0.0",
     "psycopg[binary,pool]>=3.2",
     "pyarrow>=26.0.1",
     "pydantic>=2.10",
     "pydantic-settings>=2.6",
+    "tifffile>=2026.3.3",
     "uvicorn[standard]>=0.32",
 ]
 

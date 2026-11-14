@@ -7,12 +7,15 @@ from consilium.db.migrate import (  # pragma: allowlist secret
     migrate,
     migration_status,
 )
+from consilium.db.seed import STORED_TABLES, seed  # pragma: allowlist secret
 
 __all__ = [
+    "STORED_TABLES",
     "LakebaseIndexesNotImplemented",
     "LakebaseMigrationRefused",
     "connect",
     "connection_pool",
     "migrate",
     "migration_status",
+    "seed",
 ]

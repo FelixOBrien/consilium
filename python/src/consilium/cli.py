@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Offline ingestion: manifest through load",
     )
 
-    db = subcommands.add_parser("db", help="Apply or inspect database migrations")
+    db = subcommands.add_parser("db", help="Apply migrations or load fixture data")
     db_commands = db.add_subparsers(dest="db_command", required=True)
     db_commands.add_parser("status", help="Show which migration files are applied")
     migrate_cmd = db_commands.add_parser(
@@ -49,6 +49,10 @@ def main(argv: list[str] | None = None) -> int:
         "--indexes-only",
         action="store_true",
         help="Apply HNSW and GIN index migrations only",
+    )
+    db_commands.add_parser(
+        "seed",
+        help="Load idempotent synthetic fixture data (roster, cases, slides, reports)",
     )
 
     args = parser.parse_args(argv)
