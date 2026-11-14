@@ -193,7 +193,17 @@
 										</div>
 									</div>
 								</td>
-								<td><Typography>{item.ageSex}</Typography></td>
+								<td>
+									<div class="patient-cell">
+										<Button href={`/patients/${item.patientId}`} variant="ghost" size="sm">
+											{item.patientLabel}
+										</Button>
+										<Typography style="small" tone="secondary">{item.ageSex}</Typography>
+										{#if item.patientCaseCount > 1}
+											<Badge tone="accent">{item.patientCaseCount} cases</Badge>
+										{/if}
+									</div>
+								</td>
 								<td>
 									<Badge tone={item.status === 'Open' ? 'warning' : 'success'}>{item.status}</Badge>
 								</td>
@@ -314,11 +324,13 @@
 		gap: var(--space-3);
 	}
 	.case-cell > div,
+	.patient-cell,
 	.pathologist > div {
 		display: grid;
 		gap: var(--space-1);
 	}
-	.case-cell :global(.button) {
+	.case-cell :global(.button),
+	.patient-cell :global(.button) {
 		justify-content: flex-start;
 		width: fit-content;
 		min-height: auto;

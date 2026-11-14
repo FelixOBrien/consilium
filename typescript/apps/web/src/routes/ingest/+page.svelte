@@ -16,8 +16,8 @@
 	} from '#lib';
 	import { jobs } from '#lib/data.js';
 
-	let dataset = $state('histai/HISTAI-skin-b1');
-	let slidePath = $state('case_014218/slide_HE_1.tiff');
+	let dataset = $state('TCGA-SKCM');
+	let slidePath = $state('TCGA-EE-A29T-01Z-00-DX1.svs');
 	let selectedIndex = $state(0);
 	let screenState = $state('ready');
 	const selectedJob = $derived(jobs[selectedIndex]);
@@ -47,7 +47,7 @@
 			<Typography as="span" style="eyebrow" tone="accent">Data operations</Typography>
 			<Typography as="h1" style="display">Ingestion pipeline</Typography>
 			<Typography tone="secondary">
-				Queue a HistAI slide and watch it become searchable precedent.
+				Queue a TCGA diagnostic slide from the GDC and watch it become searchable precedent.
 			</Typography>
 		</div>
 		<Button href="/" variant="ghost" icon="arrow-left">Back to worklist</Button>
@@ -72,22 +72,18 @@
 	<section class="surface new-job">
 		<div>
 			<Typography style="eyebrow" tone="accent">New single-slide job</Typography>
-			<Typography as="h2" style="section">Queue from HistAI</Typography>
+			<Typography as="h2" style="section">Queue from TCGA (GDC)</Typography>
 			<Typography style="small" tone="secondary">
-				Reference a known dataset path. Files are downloaded by the GPU worker.
+				Reference a TCGA project and GDC diagnostic slide file name or ID. Files are downloaded by
+				the GPU worker.
 			</Typography>
 		</div>
 		<SelectField
 			bind:value={dataset}
-			label="Dataset"
-			options={[
-				'histai/HISTAI-skin-b1',
-				'histai/HISTAI-breast',
-				'histai/HISTAI-thorax',
-				'histai/HISTAI-colorectal-b1'
-			]}
+			label="TCGA project"
+			options={['TCGA-SKCM', 'TCGA-BRCA', 'TCGA-LUAD', 'TCGA-COAD', 'TCGA-STAD', 'TCGA-DLBC']}
 		/>
-		<TextField bind:value={slidePath} label="Slide path" icon="database" />
+		<TextField bind:value={slidePath} label="GDC slide file or ID" icon="database" />
 		<Button variant="primary" icon="ingest">Queue ingestion</Button>
 	</section>
 
@@ -103,7 +99,7 @@
 			<EmptyState
 				icon="database"
 				title="No ingestion jobs yet"
-				description="Choose a HistAI dataset and a slide path to queue the first job."
+				description="Choose a TCGA project and a GDC slide file or ID to queue the first job."
 			/>
 		</section>
 	{:else if screenState === 'loading'}
@@ -144,7 +140,7 @@
 							>
 							<Typography style="small" tone="muted">{job.time}</Typography>
 						</div>
-						<Typography style="label">{job.dataset.replace('HISTAI-', '')}</Typography>
+						<Typography style="label">{job.dataset}</Typography>
 						<Typography style="mono" tone="secondary">{job.path}</Typography>
 						<div class="meta-row">
 							<Avatar name="Dr A. Okafor" size="sm" />

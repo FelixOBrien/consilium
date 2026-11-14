@@ -58,4 +58,4 @@ G1. The slide is the primary evidence. Every retrieval feature starts from, or r
 - Switching slides within a multi-slide case changes the image and the URL.
 
 ## Open questions
-- Whether HistAI files carry resolution metadata. If not, `slide.mpp` comes from the manifest (0.5 at 20x).
+- Whether every sampled TCGA `.svs` file carries `openslide.mpp-x` (`aperio.MPP`) and `openslide.objective-power` (`aperio.AppMag`). If not, `slide.mpp` is supplied through TRIDENT's slide list or the slide is excluded by the manifest.

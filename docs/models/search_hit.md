@@ -29,6 +29,7 @@ The shapes every search returns. Results are always cases, each carrying the evi
 | --- | --- | --- | --- |
 | `case` | `CaseSummary` | no | See [case](case.md). Includes author through the report. |
 | `author` | `PathologistRef` | no | The report's author. |
+| `same_patient` | `boolean` | no | True when the hit case belongs to the same `patient_id` as `context_case_id` (F-05.6, F-12.6). |
 | `score` | `real` | no | 0–1 relative score within this response; the top hit is 1. Not a probability (F-05.14). |
 | `matched_by` | list of `text` | no | Any of `morphology`, `keyword`, `semantic`. |
 | `patches` | list of `PatchHit` | no | Up to three. Empty for report-only matches. |
@@ -57,6 +58,7 @@ The shapes every search returns. Results are always cases, each carrying the evi
 
 | Field | Type | Null | Description |
 | --- | --- | --- | --- |
+| `patient_id` | `text` | yes | Restrict search to cases belonging to one patient (used by F-12.4 and the consult agent's patient search, F-07). |
 | `specialty` | list of `text` | yes | |
 | `icd10_prefix` | `text` | yes | |
 | `stain` | `text` | yes | |

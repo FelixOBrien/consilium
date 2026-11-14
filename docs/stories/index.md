@@ -26,6 +26,7 @@ Use these role names exactly. Add a role here before using a new one.
 | [F08-annotations.md](F08-annotations.md) | F-08 Annotations | US-08.1 – US-08.3 |
 | [F09-ingestion.md](F09-ingestion.md) | F-09 Ingestion | US-09.1 – US-09.4 |
 | [F10-retrieval-evaluation.md](F10-retrieval-evaluation.md) | F-10 Retrieval evaluation | US-10.1 – US-10.2 |
+| [F12-patient-history.md](F12-patient-history.md) | F-12 Patient longitudinal history | US-12.1 – US-12.3 |
 
 ## Template
 

@@ -14,19 +14,21 @@ This folder documents where the features appear and what each screen does. Scree
 | [S-06](S06-annotations-panel.md) | Annotations panel | in S-02, `panel=annotations` | P1 | F-08 |
 | [S-07](S07-search.md) | Search | `/search` | P0 | F-02 |
 | [S-08](S08-ingestion.md) | Ingestion | `/ingest` | P2 | F-09 |
+| [S-09](S09-patient.md) | Patient | `/patients/[patientId]` (plus `/patients` directory) | P1 | F-12, F-02, F-05 |
 
 ## Navigation
 
 ```
-                 ┌───────────── global bar: search box · acting pathologist · Ingest ─────────────┐
-                 │                                                                                │
-   S-01 Worklist ──select case──► S-02 Case workspace ◄──open result── S-07 Search ◄── search box ┘
-                                   │  viewer + one side panel at a time
-                                   ├─ S-03 Report
-                                   ├─ S-04 Evidence ──open result──► S-02 of another case, at a location
-                                   ├─ S-05 Consult  ──open citation─► S-02 of another case
-                                   └─ S-06 Annotations
-   S-08 Ingestion ──job done──► S-02 of the new case
+                 ┌──────── global bar: Worklist · Patients · search box · acting pathologist · Ingest ────────┐
+                 │                                                                                            │
+   S-01 Worklist ──select case──► S-02 Case workspace ◄──open result── S-07 Search ◄────────── search box ────┤
+        │                          │  │  viewer + one side panel at a time                                    │
+        └──select patient──┐       │  ├─ S-03 Report                                                          │
+                           ▼       │  ├─ S-04 Evidence ──open result──► S-02 of another case, at a location   │
+                     S-09 Patient ◄┘  ├─ S-05 Consult  ──open citation─► S-02 of another case                 │
+                       │              └─ S-06 Annotations                                                     │
+                       └─open case──► S-02 Case workspace                                                     │
+   S-08 Ingestion ──job done──► S-02 of the new case ◄────────────────────────────────────────────────────────┘
 ```
 
 ## Shared elements
@@ -46,10 +48,11 @@ State that should survive reload or be shareable lives in the URL, not only in m
 
 | Parameter | On | Meaning |
 | --- | --- | --- |
-| `view`, `status`, `specialty`, `assigned_to`, `icd10` | S-01 | Worklist view and filters. |
+| `view`, `status`, `specialty`, `assigned_to`, `icd10`, `patient_id` | S-01 | Worklist view and filters. |
 | `slide`, `x`, `y`, `zoom` | S-02 | Slide and viewport, level-0 pixels (F-03.5). |
 | `panel` | S-02 | Which side panel is open: `report`, `evidence`, `consult`, `annotations`. |
-| `q`, `mode`, filters | S-07 | Query, `reports` or `tissue`, and filters. |
+| `q`, `mode`, filters (including `patient_id`) | S-07 | Query, `reports` or `tissue`, and filters. |
+| `q`, `mode` | S-09 | Optional patient-scoped search query and mode (`reports` or `tissue`). |
 
 ## Template
 

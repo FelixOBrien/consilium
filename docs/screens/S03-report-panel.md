@@ -25,7 +25,7 @@ The pathologist reads the case's report next to its slide, and uses its wording 
 | Region | Contains |
 | --- | --- |
 | Report header | Author, sign-out date, the mark that both are synthetic. For an open case: the not-yet-reported notice. |
-| Sections | Clinical history, gross description, microscopic description, conclusion, differential diagnosis, additional information, ICD-10, in that order, omitting empty ones. For an open case: clinical history only. |
+| Sections | Extracted non-empty sections in order (clinical history, gross description, microscopic description, conclusion, additional information, ICD-10) plus access to the full OCR report `body` (shown directly when no post-history sections were extracted). For an open case: clinical history only. |
 | Context terms | Informative non-stop words reveal themselves on hover or focus. Selecting one maps its embedding similarity on the open slide. |
 
 ## Data

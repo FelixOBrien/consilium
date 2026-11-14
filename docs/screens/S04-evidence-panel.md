@@ -4,7 +4,7 @@ title: Evidence panel
 route: panel in S-02 (panel=evidence)
 status: planned
 priority: P0
-features: [F-05]
+features: [F-05, F-12]
 stories: [US-05.1, US-05.2, US-05.3, US-05.4, US-05.5]
 figma: ""
 linear: [SKO-278]
@@ -27,8 +27,8 @@ The pathologist finds prior cases relevant to the one on screen, by tissue or by
 | Query bar | A mode switch between **Tissue** and **Reports**, and a text input. In Tissue mode the text describes morphology (Q4); in Reports mode it searches report text (Q5). |
 | Starting actions | Shown before any query: Cases like this slide (Q3), and a prompt to click tissue or draw a region. |
 | Active query | What was searched: a patch or region thumbnail, "this slide", or the text. A control to clear it. |
-| Filters | Specialty, ICD-10 prefix. A scope switch between other cases and this slide (F-05.9). |
-| Result list | One entry per case, best first: case ID, specialty, ICD-10, first line of conclusion, author, relative score indicator, how it matched. For tissue queries, up to three patch thumbnails and the count of matching patches. For report queries, the matching passage with matched terms marked. |
+| Filters | Specialty, ICD-10 prefix, optional Same patient toggle (`filters.patient_id`, F-12.4). A scope switch between other cases and this slide (F-05.9). |
+| Result list | One entry per case, best first: case ID, patient (`display_label` linking to S-09, plus a Same patient badge when `same_patient` is true, F-12.6), specialty, ICD-10, `conclusion_line`, author, relative score indicator, how it matched. For tissue queries, up to three patch thumbnails and the count of matching patches. For report queries, the matching passage with matched terms marked. |
 | Result actions | Per result: Peek, Open. Per list: Send results to consult. |
 | Footer | Number of cases found and server time. |
 

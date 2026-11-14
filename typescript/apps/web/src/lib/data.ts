@@ -8,9 +8,48 @@ export const tissueImages = {
 	nci: 'https://images.unsplash.com/photo-1631048008444-cd48b97b5564?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=88&w=900'
 };
 
+export const patients = [
+	{
+		id: 'pt-0042',
+		displayLabel: 'PT-0042',
+		sex: 'F',
+		birthYear: 1959,
+		isSyntheticLinkage: true,
+		specialties: ['Dermatopathology']
+	},
+	{
+		id: 'pt-0018',
+		displayLabel: 'PT-0018',
+		sex: 'F',
+		birthYear: 1972,
+		isSyntheticLinkage: false,
+		specialties: ['Breast']
+	},
+	{
+		id: 'pt-0031',
+		displayLabel: 'PT-0031',
+		sex: 'M',
+		birthYear: 1954,
+		isSyntheticLinkage: true,
+		specialties: ['Thoracic', 'Gastrointestinal']
+	},
+	{
+		id: 'pt-0064',
+		displayLabel: 'PT-0064',
+		sex: 'M',
+		birthYear: 1965,
+		isSyntheticLinkage: false,
+		specialties: ['Dermatopathology']
+	}
+];
+
 export const cases = [
 	{
 		id: 'skin-014218',
+		patientId: 'pt-0042',
+		patientLabel: 'PT-0042',
+		patientCaseCount: 2,
+		specimenLabel: 'Left forearm excision',
 		specialty: 'Dermatopathology',
 		ageSex: '67 · F',
 		status: 'Open',
@@ -23,6 +62,10 @@ export const cases = [
 	},
 	{
 		id: 'breast-008412',
+		patientId: 'pt-0018',
+		patientLabel: 'PT-0018',
+		patientCaseCount: 1,
+		specimenLabel: 'Right breast core biopsy',
 		specialty: 'Breast',
 		ageSex: '54 · F',
 		status: 'Open',
@@ -35,6 +78,10 @@ export const cases = [
 	},
 	{
 		id: 'thorax-002917',
+		patientId: 'pt-0031',
+		patientLabel: 'PT-0031',
+		patientCaseCount: 2,
+		specimenLabel: 'Right upper lobe wedge resection',
 		specialty: 'Thoracic',
 		ageSex: '72 · M',
 		status: 'Open',
@@ -47,6 +94,10 @@ export const cases = [
 	},
 	{
 		id: 'skin-011904',
+		patientId: 'pt-0064',
+		patientLabel: 'PT-0064',
+		patientCaseCount: 1,
+		specimenLabel: 'Right temple wide local excision',
 		specialty: 'Dermatopathology',
 		ageSex: '61 · M',
 		status: 'Signed out',
@@ -59,18 +110,26 @@ export const cases = [
 	},
 	{
 		id: 'skin-009671',
+		patientId: 'pt-0042',
+		patientLabel: 'PT-0042',
+		patientCaseCount: 2,
+		specimenLabel: 'Prior left forearm shave biopsy',
 		specialty: 'Dermatopathology',
-		ageSex: '58 · F',
+		ageSex: '66 · F',
 		status: 'Signed out',
 		pathologist: 'Dr E. Mensah',
 		slides: 2,
 		icd10: 'D03.6',
 		conclusion: 'Atypical melanocytic proliferation, completely excised.',
-		accessioned: '11 Nov, 10:21',
+		accessioned: '14 Mar, 10:21',
 		image: tissueImages.wholeSlide
 	},
 	{
 		id: 'colorectal-004502',
+		patientId: 'pt-0031',
+		patientLabel: 'PT-0031',
+		patientCaseCount: 2,
+		specimenLabel: 'Prior sigmoid colon colectomy',
 		specialty: 'Gastrointestinal',
 		ageSex: '70 · M',
 		status: 'Signed out',
@@ -78,7 +137,7 @@ export const cases = [
 		slides: 2,
 		icd10: 'C18.7',
 		conclusion: 'Moderately differentiated gland-forming neoplasm.',
-		accessioned: '10 Nov, 15:49',
+		accessioned: '02 Feb, 15:49',
 		image: tissueImages.stomach
 	}
 ];
@@ -129,22 +188,22 @@ export const annotations = [
 
 export const jobs = [
 	{
-		dataset: 'HISTAI-skin-b1',
-		path: 'case_014218/slide_HE_1.tiff',
+		dataset: 'TCGA-SKCM',
+		path: 'TCGA-EE-A29T-01Z-00-DX1.svs',
 		status: 'Running',
 		stage: 'Projecting features',
 		time: '2 min ago'
 	},
 	{
-		dataset: 'HISTAI-breast',
-		path: 'case_008412/slide_HE_1.tiff',
+		dataset: 'TCGA-BRCA',
+		path: 'TCGA-A1-A0SB-01Z-00-DX1.svs',
 		status: 'Done',
 		stage: 'Indexed',
 		time: '18 min ago'
 	},
 	{
-		dataset: 'HISTAI-thorax',
-		path: 'case_002917/slide_HE_2.tiff',
+		dataset: 'TCGA-LUAD',
+		path: 'TCGA-38-4631-01Z-00-DX1.svs',
 		status: 'Failed',
 		stage: 'Segmenting tissue',
 		time: 'Yesterday'

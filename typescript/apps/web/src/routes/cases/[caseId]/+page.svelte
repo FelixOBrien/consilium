@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import {
@@ -91,6 +92,16 @@
 						</Badge>
 					</div>
 					<div class="case-meta">
+						<a
+							class="patient-link"
+							href={resolve('/patients/[patientId]', { patientId: caseRecord.patientId })}
+						>
+							{caseRecord.patientLabel}
+							{#if caseRecord.patientCaseCount > 1}
+								({caseRecord.patientCaseCount - 1} prior)
+							{/if}
+						</a>
+						<span></span>
 						<Typography style="small" tone="secondary">{caseRecord.specialty}</Typography>
 						<span></span>
 						<Typography style="small" tone="secondary">{caseRecord.ageSex}</Typography>
@@ -231,6 +242,14 @@
 	}
 	.case-meta {
 		gap: var(--space-2);
+	}
+	.patient-link {
+		color: var(--color-action);
+		font: var(--font-label-sm);
+		text-decoration: none;
+	}
+	.patient-link:hover {
+		text-decoration: underline;
 	}
 	.case-meta > span {
 		width: var(--space-1);

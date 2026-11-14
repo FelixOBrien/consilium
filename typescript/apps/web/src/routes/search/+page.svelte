@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import {
@@ -149,6 +150,12 @@
 								<div>
 									<Typography as="h3" style="subsection">{result.id}</Typography>
 									<div class="meta-row">
+										<a
+											class="patient-link"
+											href={resolve('/patients/[patientId]', { patientId: result.patientId })}
+										>
+											{result.patientLabel}
+										</a>
 										<Typography style="small" tone="secondary">
 											{result.specialty} · {result.ageSex}
 										</Typography>
@@ -330,6 +337,14 @@
 	.report-section {
 		display: grid;
 		gap: var(--space-2);
+	}
+	.patient-link {
+		color: var(--color-action);
+		font: var(--font-label-sm);
+		text-decoration: none;
+	}
+	.patient-link:hover {
+		text-decoration: underline;
 	}
 	.score {
 		display: grid;

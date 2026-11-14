@@ -17,6 +17,7 @@ This folder documents what the application does. A feature is one capability a u
 | [F-09](F09-ingestion.md) | Ingestion | P0 bulk, P2 live | planned | [US-09](../stories/F09-ingestion.md) | S-08 |
 | [F-10](F10-retrieval-evaluation.md) | Retrieval evaluation | P1 | planned | [US-10](../stories/F10-retrieval-evaluation.md) | — |
 | [F-11](F11-report-authoring.md) | Report authoring and sharing | — | cut | — | — |
+| [F-12](F12-patient-history.md) | Patient longitudinal history | P1 | planned | [US-12](../stories/F12-patient-history.md) | S-01, S-02, S-05, S-07, S-09 |
 
 ## Build order
 
@@ -24,7 +25,7 @@ P0 features form one path: F-09 produces the data, F-01 and F-03 make it visible
 
 ```
 F-09 ──► F-01 ──► F-03 ──► F-04
-                    ├────► F-05 ──► F-07
+                    ├────► F-05 ──► F-07 ──► F-12
                     │        └────► F-02
                     ├────► F-06
                     └────► F-08

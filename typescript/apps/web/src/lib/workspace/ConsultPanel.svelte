@@ -47,7 +47,7 @@
 	{#if !started}
 		<div class="starters">
 			<Typography style="eyebrow" tone="muted">Starter questions</Typography>
-			{#each ['Who should I consult on this case?', 'Summarise similar cases', 'What features distinguished similar cases?'] as starter (starter)}
+			{#each ['Who should I consult on this case?', "Summarise this patient's previous cases", 'Summarise similar cases', 'What features distinguished similar cases?'] as starter (starter)}
 				<Button variant="quiet" onclick={() => (started = true)}>{starter}</Button>
 			{/each}
 		</div>
@@ -77,7 +77,7 @@
 					</Pressable>
 					{#if stepsOpen}
 						<div class="step-list">
-							{#each [['Reviewed case context', '1 open case · 2 slides'], ['Searched by selected morphology', '18 precedent cases'], ['Read the 6 highest-ranked reports', '6 signed reports'], ['Ranked reporting pathologists', 'SQL count complete']] as step, index (step[0])}
+							{#each [['Reviewed case & patient history', 'PT-0042 · 1 signed-out prior case'], ['Searched by selected morphology', '18 precedent cases'], ['Read the 6 highest-ranked reports', '6 signed reports'], ['Ranked reporting pathologists', 'SQL count complete']] as step, index (step[0])}
 								<div>
 									<span>{index + 1}</span>
 									<div>
@@ -99,8 +99,9 @@
 						nests and a stromal response around the invasive front.
 					</Typography>
 					<Typography>
-						<strong>Dr E. Mensah</strong> is a useful second opinion, with two relevant cases
-						showing a more junctional pattern <CitationLink>skin-009671</CitationLink>.
+						<strong>Dr E. Mensah</strong> previously reported this patient's earlier forearm biopsy
+						(<CitationLink>skin-009671</CitationLink>) and has two relevant precedent cases showing
+						a more junctional pattern.
 					</Typography>
 				</div>
 

@@ -9,7 +9,8 @@ The store is Postgres with pgvector ([architecture D4](../architecture.md#decisi
 | Model | Table | Written by | Purpose | Used by |
 | --- | --- | --- | --- | --- |
 | [pathologist](pathologist.md) | `pathologist` | pipeline (seed) | The synthetic roster of report authors and app users. | F-01, F-04, F-07, F-08 |
-| [case](case.md) | `path_case` | pipeline | One specimen submission for one patient. | F-01, F-02, F-05, F-07 |
+| [patient](patient.md) | `patient` | pipeline | One de-identified patient across one or more cases over time. | F-01, F-02, F-05, F-07, F-09, F-12 |
+| [case](case.md) | `path_case` | pipeline | One specimen submission for one patient. | F-01, F-02, F-05, F-07, F-12 |
 | [slide](slide.md) | `slide` | pipeline | One whole slide image of a case. | F-03, F-05, F-06 |
 | [patch](patch.md) | `patch` | pipeline | One tile of tissue with its embedding. | F-03, F-05, F-06 |
 | [report](report.md) | `report` | pipeline | The pathology report of a case. | F-02, F-04, F-05, F-07 |
@@ -25,6 +26,7 @@ The store is Postgres with pgvector ([architecture D4](../architecture.md#decisi
 
 ```mermaid
 erDiagram
+    patient ||--|{ path_case : "patient_id"
     pathologist ||--o{ path_case : "assigned_to"
     pathologist ||--o{ report : "author_id"
     path_case ||--|{ slide : has
@@ -51,7 +53,7 @@ A query vector is only ever compared with columns of its own space. All comparis
 ## Conventions
 
 - Table and column names are snake_case; tables are singular. The case table is `path_case` because `case` is a reserved word in SQL; everywhere else it is called a case, and foreign keys are `case_id`.
-- Entities loaded from HistAI have readable text primary keys built from their source. Entities created in the app have `uuid` keys.
+- Entities loaded from TCGA have readable text primary keys built from their source. Entities created in the app have `uuid` keys.
 - Every table has `created_at timestamptz not null default now()`.
 - Enumerations are `text` with a `check` constraint listing the allowed values.
 - Coordinates are integers in level-0 pixels of the slide's original file.
@@ -91,7 +93,7 @@ Bullets: index, type, and the query it serves.
 Numbered invariants the data must satisfy.
 
 ## Source
-Where the values come from: HistAI field, pipeline stage, or user action.
+Where the values come from: GDC or TCGA-Reports field, pipeline stage, or user action.
 
 ## API shape
 The Pydantic model name(s), and which fields are omitted or added when sent to the client.

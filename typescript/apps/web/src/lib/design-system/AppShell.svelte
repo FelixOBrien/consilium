@@ -27,6 +27,9 @@
 			</a>
 			<nav aria-label="Primary navigation">
 				<a class:active={currentPath === '/'} href={resolve('/')}>Worklist</a>
+				<a class:active={currentPath.startsWith('/patients')} href={resolve('/patients')}
+					>Patients</a
+				>
 				<a class:active={currentPath === '/ingest'} href={resolve('/ingest')}>Ingest</a>
 			</nav>
 		</div>

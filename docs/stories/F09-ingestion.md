@@ -10,12 +10,12 @@ Feature: [F-09](../features/F09-ingestion.md)
 
 ## US-09.1 · Build a clean cohort
 
-As a Data operator, I want to build a balanced, de-duplicated list of slides from HistAI so that search results are not dominated by one organ or polluted by bad records.
+As a Data operator, I want to build a balanced, de-duplicated list of diagnostic slides and paired reports from TCGA so that search results are not dominated by one organ or stalled by multi-gigabyte files.
 
 - **Priority:** P0
 - **Covers:** F-09.1, F-09.2
 - **Acceptance:**
-  - Given HistAI metadata, when I build the demo tier, then the manifest has one H&E 20x slide per case, no duplicate cases, no empty conclusions, and equal case counts per specialty where available.
+  - Given GDC slide and case metadata and `TCGA_Reports.csv`, when I build the demo tier, then the manifest has one open diagnostic H&E `.svs` slide under the size cap per case, no duplicate cases, a paired non-empty report and primary diagnosis for every case, and equal case counts per specialty where available.
   - Given the same seed, when I rebuild, then I get the same manifest.
   - Given the manifest, when I count held-out cases, then there are about 10, spread across specialties.
 
@@ -48,6 +48,6 @@ As a Data operator, I want to queue a single slide and see it move through each 
 - **Priority:** P2
 - **Covers:** F-09.10, F-09.11, F-09.12
 - **Acceptance:**
-  - Given a HistAI slide path, when I queue it, then a job appears as queued and then advances through its stages.
+  - Given a TCGA project and GDC slide file name or ID, when I queue it, then a job appears as queued and then advances through its stages.
   - Given a job that reaches done, when I open the case, then the slide opens and is searchable without restarting anything.
   - Given a job that fails, when I view it, then I see the stage and error and can retry it.

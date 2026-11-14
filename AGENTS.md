@@ -26,7 +26,7 @@ Read [docs/vision.md](docs/vision.md) and [docs/context.md](docs/context.md) onc
 ## Hard rules
 
 1. **Not a diagnostic device.** No feature, prompt or UI copy may state a diagnosis for the open case as fact. The product retrieves and summarises precedent, always with citations to cases. Keep the "research prototype, not for clinical use" notice visible.
-2. **No data or weights in git.** Slides, embeddings, parquet, thumbnails, model weights and `.env` files stay out of the repository. The repo is public. CONCH-Z is CC-BY-NC-ND and HistAI is CC BY-NC.
+2. **No data or weights in git.** Slides, embeddings, parquet, thumbnails, model weights and `.env` files stay out of the repository. The repo is public. CONCH-Z is CC-BY-NC-ND, and TCGA slides (GDC open access) and TCGA-Reports (CC BY 4.0) are large and redistributed only by their hosts.
 3. **No secrets in code, docs, issues or logs.** Read them from environment variables listed in [docs/architecture.md](docs/architecture.md#configuration).
 4. **Code written during the hackathon only.** Do not paste in pre-existing private code. Open-source libraries and pretrained models are fine; add each new one to the list in [README.md](README.md).
 5. **Local first.** Everything must run on a laptop against Docker Postgres and local files. Databricks is a deployment target reached through config, never a requirement for development.

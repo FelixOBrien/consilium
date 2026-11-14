@@ -4,7 +4,7 @@ title: Case workspace and viewer
 route: /cases/[caseId]
 status: planned
 priority: P0
-features: [F-03, F-06]
+features: [F-03, F-06, F-12]
 stories: [US-03.1, US-03.2, US-03.3, US-03.4, US-06.1, US-06.2, US-06.3]
 figma: ""
 linear: [SKO-270, SKO-275]
@@ -24,7 +24,7 @@ The pathologist works on one case here: examining its slide, with one side panel
 
 | Region | Contains |
 | --- | --- |
-| Case header | Case ID, specialty, patient age and sex, status, assigned pathologist, ICD-10 (signed-out cases only). A way back to the worklist. |
+| Case header | Case ID, patient (`display_label` and prior-case count badge linking to S-09, F-12.1), `specimen_label`, specialty, patient age and sex, status, assigned pathologist, ICD-10 (signed-out cases only). A way back to the worklist. |
 | Slide list | The case's slides with thumbnail, stain and ingestion status. Shown only when the case has more than one slide. |
 | Viewer | The deep-zoom image, navigator minimap, magnification readout, scale bar. Hosts the overlay layers. |
 | Selection actions | Appears when a patch or region is selected: Find similar tissue, Ask about this region, Annotate. |
@@ -59,6 +59,7 @@ The pathologist works on one case here: examining its slide, with one side panel
 | Clear report-word overlay | Shading and the active word are removed (F-06.7). | — |
 | Toggle a layer | That layer hides or shows; others unchanged (F-03.8). | — |
 | Switch panel | The chosen panel opens; `panel` set in the URL. | per panel |
+| Select the patient in the header | Opens S-09 for this case's patient (F-12.1). | — |
 | Hide panel | The side panel collapses so the viewer uses the available width; a persistent control restores it. | — |
 | Copy link | The current URL, which reproduces the view (F-03.5). | — |
 
