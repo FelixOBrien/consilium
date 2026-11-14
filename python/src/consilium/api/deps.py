@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Annotated, cast
 
 from fastapi import Depends, Header, Request
@@ -11,6 +12,10 @@ from consilium.api.errors import fail  # pragma: allowlist secret
 from consilium.api.schemas.pathologist import Pathologist  # pragma: allowlist secret
 from consilium.api.store import Store  # pragma: allowlist secret
 from consilium.config import Settings, get_settings  # pragma: allowlist secret
+from consilium.db.pathologists import (  # pragma: allowlist secret
+    get_demo_pathologist,
+    get_pathologist,
+)
 
 
 def get_store(request: Request) -> Store:
@@ -40,8 +45,18 @@ def get_db(request: Request) -> Iterator[Connection]:
     if getattr(request.app.state, "use_stub_store", False):
         yield cast(Connection, None)
         return
-    with get_pool(request).connection() as conn:
+    with read_connection(request) as conn:
         yield conn
+
+
+@contextmanager
+def read_connection(request: Request) -> Iterator[Connection]:
+    """One pooled connection for a read. Rolled back before it returns to the pool."""
+    with get_pool(request).connection() as conn:
+        try:
+            yield conn
+        finally:
+            conn.rollback()
 
 
 def get_acting_pathologist(
@@ -65,50 +80,16 @@ def get_acting_pathologist(
             fail(404, "unknown_user", "No pathologist matches X-User-Id.")
         return found
 
-    with get_pool(request).connection() as conn:
+    with read_connection(request) as conn:
         if not raw:
-            row = conn.execute(
-                """
-                select id, name, role_title, primary_specialty, secondary_specialties,
-                       is_demo_user, is_synthetic, created_at
-                from pathologist
-                where is_demo_user = true
-                order by id
-                limit 1
-                """
-            ).fetchone()
-            if row is None:
-                fail(404, "unknown_user", "No demo pathologist is seeded.")
-            return _pathologist(row)
-        row = conn.execute(
-            """
-            select id, name, role_title, primary_specialty, secondary_specialties,
-                   is_demo_user, is_synthetic, created_at
-            from pathologist
-            where id = %s
-            """,
-            (raw,),
-        ).fetchone()
-        if row is None:
+            demo = get_demo_pathologist(conn)
+            if demo is None:
+                fail(500, "error", "No demo pathologist is seeded.")
+            return demo
+        found = get_pathologist(conn, raw)
+        if found is None:
             fail(404, "unknown_user", "No pathologist matches X-User-Id.")
-        return _pathologist(row)
-
-
-def _pathologist(row: tuple[object, ...]) -> Pathologist:
-    specialties = row[4]
-    secondary = list(specialties) if isinstance(specialties, (list, tuple)) else []
-    return Pathologist.model_validate(
-        {
-            "id": row[0],
-            "name": row[1],
-            "role_title": row[2],
-            "primary_specialty": row[3],
-            "secondary_specialties": secondary,
-            "is_demo_user": row[5],
-            "is_synthetic": row[6],
-            "created_at": row[7],
-        }
-    )
+        return found
 
 
 StoreDep = Annotated[Store, Depends(get_store)]
