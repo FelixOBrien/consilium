@@ -194,13 +194,17 @@ def run_db_command(args: object) -> int:
                 for filename in applied:
                     print(f"applied {filename}")
             return 0
+        if command == "seed":
+            from consilium.db.seed import run_seed_command  # pragma: allowlist secret
+
+            return run_seed_command()
     except (LakebaseMigrationRefused, LakebaseIndexesNotImplemented, RuntimeError) as exc:
         print(_public_error(exc), file=sys.stderr)
         return 1
     except psycopg.Error as exc:
         print(_public_error(exc), file=sys.stderr)
         return 1
-    print("usage: consilium db {status,migrate}", file=sys.stderr)  # pragma: allowlist secret
+    print("usage: consilium db {status,migrate,seed}", file=sys.stderr)  # pragma: allowlist secret
     return 2
 
 

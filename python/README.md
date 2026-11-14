@@ -28,6 +28,17 @@ DATABASE_URL=postgresql://consilium:consilium@localhost:5432/consilium uv run co
 `db migrate --schema-only` applies tables and leaves HNSW and GIN for
 `db migrate --indexes-only` after a bulk load. `db status` lists applied files.
 
+Load the invented fixture roster, cases, reports and two synthetic pyramidal slides.
+Files are written under `STORAGE_ROOT` (default `data/`) and are not committed.
+Running `seed` again replaces those rows and leaves the same counts.
+
+```bash
+uv run consilium db seed <!-- pragma: allowlist secret -->
+uv run python -m consilium.db seed <!-- pragma: allowlist secret -->
+```
+
+`uv sync --group tiles` installs OpenSlide. The seed tests open the generated slides with it.
+
 Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git.
 
 ```bash
