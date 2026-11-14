@@ -1,7 +1,9 @@
 """Offline ingestion.
 
-``manifest`` builds the stage-1 cohort. ``reports`` and ``encode-concepts``
-build stage-7 patients, reports, chunks, and concept embeddings.
+``manifest`` builds the stage-1 cohort. ``download`` fetches SVS files.
+``extract`` reads SVS headers and runs TRIDENT segmentation, patching, and
+``conch_v15`` features. ``reports`` and ``encode-concepts`` build stage-7
+patients, reports, chunks, and concept embeddings.
 """
 
 from __future__ import annotations

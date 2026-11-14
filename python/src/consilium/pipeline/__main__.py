@@ -1,4 +1,4 @@
-"""Pipeline CLI. `manifest` is stage 1. `reports` and `encode-concepts` are stage 7."""
+"""Pipeline CLI: manifest, slide download, TRIDENT extract, and stage-7 reports."""
 
 from __future__ import annotations
 
@@ -9,6 +9,12 @@ from pathlib import Path
 from consilium.config import get_settings, repo_root  # pragma: allowlist secret
 from consilium.embed import MockTextEncoder, build_text_encoders  # pragma: allowlist secret
 from consilium.embed.text import EmbedError, TextEncoders  # pragma: allowlist secret
+from consilium.pipeline.download import DownloadResult, download_cohort  # pragma: allowlist secret
+from consilium.pipeline.extract import (  # pragma: allowlist secret
+    SEGMENTERS,
+    ExtractResult,
+    extract_cohort,
+)
 from consilium.pipeline.gdc import GdcClient  # pragma: allowlist secret
 from consilium.pipeline.manifest import (  # pragma: allowlist secret
     ManifestResult,
@@ -17,6 +23,7 @@ from consilium.pipeline.manifest import (  # pragma: allowlist secret
 )
 from consilium.pipeline.reports import ensure_reports_csv  # pragma: allowlist secret
 from consilium.pipeline.stage_reports import (  # pragma: allowlist secret
+    Stage7Result,
     encode_concept_parquet,
     run_reports,
 )
@@ -62,12 +69,76 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Offline GDC cases payload. Requires --slides-json.",
     )
+    _add_download_parser(subcommands)
+    _add_extract_parser(subcommands)
+    _add_reports_parser(subcommands)
+    _add_encode_concepts_parser(subcommands)
+    return parser
 
+
+def _add_data_root(parser: argparse.ArgumentParser, *, help_text: str) -> None:
+    parser.add_argument(
+        "--data-root",
+        type=Path,
+        default=None,
+        help=help_text,
+    )
+
+
+def _add_download_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    download = subcommands.add_parser(
+        "download",
+        help="Download manifest slides from the GDC to data/slides/{slide_id}.svs",
+    )
+    _add_data_root(download, help_text="Data root. Default: <repo>/data (git-ignored).")
+    download.add_argument(
+        "--cohort",
+        type=Path,
+        default=None,
+        help="Cohort CSV. Default: <data-root>/cohort/cohort.csv.",
+    )
+    download.add_argument("--workers", type=int, default=4, help="Concurrent downloads.")
+    download.add_argument(
+        "--verify-md5",
+        action="store_true",
+        help="Hash existing .svs files before skipping them. Fresh downloads always check MD5.",
+    )
+    download.add_argument("--retries", type=int, default=5)
+    download.add_argument("--timeout", type=float, default=300.0)
+    download.add_argument(
+        "--gdc-base-url",
+        default=None,
+        help="GDC API origin. Default: https://api.gdc.cancer.gov.",
+    )
+
+
+def _add_extract_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    extract = subcommands.add_parser(
+        "extract",
+        help="Read SVS headers and run TRIDENT conch_v15 features into data/trident/",
+    )
+    extract.add_argument("--data-root", type=Path, default=None)
+    extract.add_argument("--cohort", type=Path, default=None)
+    extract.add_argument(
+        "--gpu",
+        type=int,
+        default=0,
+        help="GPU index passed to TRIDENT as --gpus. Use -1 for CPU.",
+    )
+    extract.add_argument("--segmenter", default="hest", choices=SEGMENTERS)
+    extract.add_argument(
+        "--trident",
+        default="trident",
+        help="TRIDENT executable. Default: trident on PATH.",
+    )
+
+
+def _add_reports_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     reports = subcommands.add_parser(
         "reports",
         help="Stage 7: patients, reports, authorship, chunks, and concept prompts",
     )
-    _add_data_root(reports)
+    _add_data_root(reports, help_text="Data root. Default: <repo>/data (git-ignored).")
     reports.add_argument(
         "--reports",
         type=Path,
@@ -87,22 +158,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reports.add_argument("--encoder", choices=("hf", "mock"), default="hf")
 
+
+def _add_encode_concepts_parser(
+    subcommands: argparse._SubParsersAction[argparse.ArgumentParser],
+) -> None:
     concepts = subcommands.add_parser(
         "encode-concepts",
         help="Fill concept.parquet embeddings with the CONCH-Z text tower",
     )
-    _add_data_root(concepts)
+    _add_data_root(concepts, help_text="Data root. Default: <repo>/data (git-ignored).")
     concepts.add_argument("--encoder", choices=("hf", "mock"), default="hf")
-    return parser
-
-
-def _add_data_root(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--data-root",
-        type=Path,
-        default=None,
-        help="Data root. Default: <repo>/data (git-ignored).",
-    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -110,22 +175,29 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "manifest":
-            result = _run_manifest(args)
-            print(result.summary(), end="")
-            return 0
-        if args.command == "reports":
-            built = _run_reports(args)
-            print(built.summary(), end="")
-            return 0
-        if args.command == "encode-concepts":
+            result: ManifestResult | DownloadResult | ExtractResult | Stage7Result = _run_manifest(
+                args
+            )
+        elif args.command == "download":
+            result = _run_download(args)
+        elif args.command == "extract":
+            result = _run_extract(args)
+        elif args.command == "reports":
+            result = _run_reports(args)
+        elif args.command == "encode-concepts":
             count = _run_encode_concepts(args)
             print(f"concepts_encoded {count}")
             return 0
+        else:
+            parser.print_help()
+            return 2
     except (OSError, RuntimeError, ValueError, EmbedError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    parser.print_help()
-    return 2
+    print(result.summary(), end="")
+    if getattr(result, "failed", 0):
+        return 1
+    return 0
 
 
 def _encoders(kind: str) -> TextEncoders:
@@ -134,13 +206,7 @@ def _encoders(kind: str) -> TextEncoders:
     return build_text_encoders(get_settings())
 
 
-def _data_root(args: argparse.Namespace) -> Path:
-    if args.data_root is not None:
-        return args.data_root
-    return repo_root() / "data"
-
-
-def _run_reports(args: argparse.Namespace):
+def _run_reports(args: argparse.Namespace) -> Stage7Result:
     data_root = _data_root(args)
     reports_path = args.reports
     if reports_path is None:
@@ -188,6 +254,50 @@ def _run_manifest(args: argparse.Namespace) -> ManifestResult:
         cases=cases,
         reports_csv=reports_path,
         data_root=data_root,
+    )
+
+
+def _data_root(args: argparse.Namespace) -> Path:
+    return args.data_root if args.data_root is not None else repo_root() / "data"
+
+
+def _cohort_path(args: argparse.Namespace, data_root: Path) -> Path:
+    if args.cohort is not None:
+        return args.cohort
+    return data_root / "cohort" / "cohort.csv"
+
+
+def _run_download(args: argparse.Namespace) -> DownloadResult:
+    data_root = _data_root(args)
+    cohort_csv = _cohort_path(args, data_root)
+    if args.gdc_base_url:
+        return download_cohort(
+            cohort_csv=cohort_csv,
+            data_root=data_root,
+            workers=args.workers,
+            verify_md5=args.verify_md5,
+            retries=args.retries,
+            timeout=args.timeout,
+            base_url=args.gdc_base_url,
+        )
+    return download_cohort(
+        cohort_csv=cohort_csv,
+        data_root=data_root,
+        workers=args.workers,
+        verify_md5=args.verify_md5,
+        retries=args.retries,
+        timeout=args.timeout,
+    )
+
+
+def _run_extract(args: argparse.Namespace) -> ExtractResult:
+    data_root = _data_root(args)
+    return extract_cohort(
+        cohort_csv=_cohort_path(args, data_root),
+        data_root=data_root,
+        gpu=args.gpu,
+        segmenter=args.segmenter,
+        trident_executable=args.trident,
     )
 
 

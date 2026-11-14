@@ -44,8 +44,9 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Library | [timm](https://github.com/huggingface/pytorch-image-models) | Pipeline vision backbones | Apache-2.0 |
 | Library | [Transformers](https://github.com/huggingface/transformers) | CONCH-Z and report encoders | Apache-2.0 |
 | Library | [Hugging Face Hub](https://github.com/huggingface/huggingface_hub) | Model download for the pipeline | Apache-2.0 |
-| Library | [PyArrow](https://arrow.apache.org/) | Cohort manifest clinical table (`gdc_cases.parquet`) | Apache-2.0 |
-| Library | [OpenSlide](https://openslide.org/) (`openslide-python`, `openslide-bin`) | Tile server, optional install | LGPL-2.1 |
+| Library | [PyArrow](https://arrow.apache.org/) | Cohort manifest clinical table (`gdc_cases.parquet`) and slide-header tables | Apache-2.0 |
+| Library | [h5py](https://www.h5py.org/) | Read and validate TRIDENT coordinate and feature files | BSD-3-Clause |
+| Library | [OpenSlide](https://openslide.org/) (`openslide-python`, `openslide-bin`) | SVS header reads and the tile server, optional install | LGPL-2.1 |
 | Platform | Databricks Free Edition (Unity Catalog, Delta, Lakebase, Apps) | Lakehouse, vector search, app hosting | — |
 
 Pathologist identities, sign-out dates, case assignments and multi-donor longitudinal patient links are synthetic: TCGA reports are de-identified and do not identify report authors or longitudinal clinical accessions.

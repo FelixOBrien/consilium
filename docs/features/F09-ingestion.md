@@ -78,5 +78,5 @@ The pipeline itself is a command-line program in `consilium.pipeline`, one subco
 - A queued single-slide job moves through its stages and the slide becomes searchable without restarting the API.
 
 ## Open questions
-- Resolution metadata in sampled TCGA `.svs` files (see [F-03](F03-slide-viewer.md)).
+- A few TCGA `.svs` files have no resolution metadata (see [F-03](F03-slide-viewer.md)). Stage 4 records those slides and continues; it does not invent a microns-per-pixel value.
 - Lakebase Free Edition stores at most 512 MB ([context](../context.md#platform-databricks-free-edition)), which caps the tier loaded there. The manifest tiers are the subset that load can choose.
