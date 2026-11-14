@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { globalSearchHref } from '#lib/search/query.js';
 	import { RESEARCH_NOTICE, SYNTHETIC_ROSTER_NOTICE } from '#lib/identity/copy.js';
 	import { identity } from '#lib/identity/identity.svelte.js';
 	import { specialtyLabel } from '#lib/worklist/query.js';
@@ -15,9 +17,28 @@
 	let { children }: { children: Snippet } = $props();
 	let query = $state('');
 	let rosterOpen = $state(false);
+	let seenQuery: string | null = null;
 	const currentPath = $derived(page.url.pathname);
 	const acting = $derived(identity.me);
 	const actingName = $derived(acting?.name ?? 'Acting pathologist');
+
+	$effect(() => {
+		if (page.url.pathname !== '/search') return;
+		const next = page.url.searchParams.get('q') ?? '';
+		if (next === seenQuery) return;
+		query = next;
+		seenQuery = next;
+	});
+
+	function submitSearch(event: SubmitEvent) {
+		event.preventDefault();
+		const href = globalSearchHref(query);
+		if (href === '/') {
+			void goto(resolve('/'));
+			return;
+		}
+		void goto(resolve(href as '/'), { reset: false });
+	}
 
 	function toggleRoster() {
 		rosterOpen = !rosterOpen;
@@ -54,14 +75,13 @@
 			</nav>
 		</div>
 
-		<form class="global-search" action="/search">
+		<form class="global-search" aria-label="Search cases" onsubmit={submitSearch}>
 			<TextField
 				bind:value={query}
 				name="q"
 				placeholder="Search cases, reports or tissue…"
 				compact
 			/>
-			<input type="hidden" name="mode" value="reports" />
 			<Button type="submit" variant="primary" size="sm">Search</Button>
 		</form>
 
@@ -206,9 +226,6 @@
 	}
 	.global-search :global(.field) {
 		min-width: 0;
-	}
-	.global-search > input {
-		display: none;
 	}
 	.identity {
 		position: relative;
