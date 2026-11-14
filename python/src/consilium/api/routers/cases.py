@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Query, Request
 
 from consilium.api.deps import Acting, StoreDep, read_connection  # pragma: allowlist secret
+from consilium.api.errors import fail  # pragma: allowlist secret
 from consilium.api.schemas.case import CaseDetail, CaseSummary  # pragma: allowlist secret
 from consilium.api.schemas.common import CaseStatus, Page, Specialty  # pragma: allowlist secret
 from consilium.api.schemas.report import CaseReport  # pragma: allowlist secret
@@ -12,6 +13,8 @@ from consilium.api.schemas.search import SimilarCases  # pragma: allowlist secre
 from consilium.db.cases import get_case as get_case_row  # pragma: allowlist secret
 from consilium.db.cases import get_report as get_report_row  # pragma: allowlist secret
 from consilium.db.cases import list_cases as list_case_rows  # pragma: allowlist secret
+from consilium.embed.text import TextEncoders  # pragma: allowlist secret
+from consilium.search import SearchError, similar_cases  # pragma: allowlist secret
 
 router = APIRouter(tags=["cases"])
 
@@ -78,5 +81,19 @@ def get_case_report(case_id: str, request: Request, _actor: Acting, store: Store
     response_model=SimilarCases,
     operation_id="get_similar_cases",
 )
-def get_similar_cases(case_id: str, _actor: Acting, store: StoreDep) -> SimilarCases:
-    return store.similar(case_id)
+def get_similar_cases(
+    case_id: str,
+    request: Request,
+    _actor: Acting,
+    store: StoreDep,
+) -> SimilarCases:
+    if request.app.state.use_stub_store:
+        return store.similar(case_id)
+    encoders = getattr(request.app.state, "text_encoders", None)
+    if not isinstance(encoders, TextEncoders):
+        fail(500, "error", "Text encoder is not configured.")
+    try:
+        with read_connection(request) as conn:
+            return similar_cases(conn, case_id, encoders)
+    except SearchError as exc:
+        fail(exc.status_code, exc.code, exc.message)
