@@ -38,7 +38,7 @@ from consilium.agent.tools import (  # pragma: allowlist secret
     execute_tool,
     outcome_json,
 )
-from consilium.agent.tracing import TurnTracer  # pragma: allowlist secret
+from consilium.agent.tracing import NoopTurnTracer  # pragma: allowlist secret
 from consilium.api.schemas.consult import (  # pragma: allowlist secret
     CitationsEvent,
     ConsultMessage,
@@ -83,6 +83,7 @@ class _Turn:
     ranking: list[PathologistRank] | None = None
     input_tokens: int = 0
     output_tokens: int = 0
+    tool_calls: int = 0
     model: str | None = None
     finalized: bool = False
 
@@ -99,15 +100,24 @@ async def consult_turn(
     thread_id: UUID,
     actor_id: str,
     body: ConsultMessageCreate,
-    tracer: TurnTracer | None = None,
+    tracer: NoopTurnTracer | None = None,
 ) -> AsyncIterator[ConsultStreamEvent]:
-    spans = tracer or TurnTracer()
+    spans = tracer or NoopTurnTracer()
     turn = _begin(db_factory, thread_id, actor_id, body, spans)
-    spans.start_turn(case_id=turn.case_id)
+    turn.model = provider.model_name
+    spans.start_turn(
+        case_id=turn.case_id,
+        thread_id=str(thread_id),
+        model=provider.model_name,
+    )
+    status = "complete"
+    citation_count = 0
     try:
         async for event in _drive(db_factory, provider, encoders, body, turn, spans):
             yield event
         saved = _finish(db_factory, thread_id, actor_id, turn, status="complete")
+        if saved is not None:
+            citation_count = _citation_count(saved)
         if saved is None:
             return
         yield CitationsEvent(citations=saved.citations or [])
@@ -116,23 +126,46 @@ async def consult_turn(
         yield DoneEvent(message=saved)
     except asyncio.CancelledError:
         try:
-            _finish(db_factory, thread_id, actor_id, turn, status="complete")
+            saved = _finish(db_factory, thread_id, actor_id, turn, status="complete")
+            if saved is not None:
+                citation_count = _citation_count(saved)
         finally:
             raise
     except AgentUnavailable as exc:
+        status = "error"
         logger.error("consult provider unavailable: %s", exc.detail)
         if not turn.content:
             turn.parts.append(PUBLIC_UNAVAILABLE)
         saved = _finish(db_factory, thread_id, actor_id, turn, status="error")
+        if saved is not None:
+            citation_count = _citation_count(saved)
         yield ErrorEvent(message=PUBLIC_UNAVAILABLE)
         if saved is not None:
             return
     except Exception as exc:
+        status = "error"
         logger.error("consult turn failed: %s", type(exc).__name__)
         if not turn.content:
             turn.parts.append(PUBLIC_UNAVAILABLE)
-        _finish(db_factory, thread_id, actor_id, turn, status="error")
+        saved = _finish(db_factory, thread_id, actor_id, turn, status="error")
+        if saved is not None:
+            citation_count = _citation_count(saved)
         yield ErrorEvent(message=PUBLIC_UNAVAILABLE)
+    finally:
+        spans.end_turn(
+            status=status,
+            model=turn.model,
+            input_tokens=turn.input_tokens,
+            output_tokens=turn.output_tokens,
+            tool_call_count=turn.tool_calls,
+            citation_count=citation_count,
+        )
+
+
+def _citation_count(message: ConsultMessage | None) -> int:
+    if message is None or not message.citations:
+        return 0
+    return len(message.citations)
 
 
 def _begin(
@@ -140,7 +173,7 @@ def _begin(
     thread_id: UUID,
     actor_id: str,
     body: ConsultMessageCreate,
-    tracer: TurnTracer,
+    tracer: NoopTurnTracer,
 ) -> _Turn:
     with db_factory() as conn:
         context = thread_case_context(conn, thread_id)
@@ -178,7 +211,7 @@ async def _drive(
     encoders: TextEncoders,
     body: ConsultMessageCreate,
     turn: _Turn,
-    tracer: TurnTracer,
+    tracer: NoopTurnTracer,
 ) -> AsyncIterator[ConsultStreamEvent]:
     messages = _model_messages(turn.history, body)
     system = system_prompt(
@@ -188,34 +221,37 @@ async def _drive(
     )
     turn.model = provider.model_name
     calls = 0
+    step_index = 0
     while True:
         forced = calls >= MAX_TOOL_CALLS
         schemas = [] if forced else TOOL_SCHEMAS
         sanitizer = CitationSanitizer(turn.allowlist)
-        span = tracer.start_model_span()
+        span = tracer.start_model_span(model=turn.model, step_index=step_index)
         end: ProviderEvent | None = None
-        async for event in provider.stream(system=system, messages=messages, tools=schemas):
-            if event.kind == "text" and event.text:
-                visible = sanitizer.push(event.text)
-                if visible:
-                    turn.parts.append(visible)
-                    yield TextEvent(content=visible)
-            elif event.kind == "end":
-                end = event
-        tail = sanitizer.finish()
-        if tail:
-            turn.parts.append(tail)
-            yield TextEvent(content=tail)
+        try:
+            async for event in provider.stream(system=system, messages=messages, tools=schemas):
+                if event.kind == "text" and event.text:
+                    visible = sanitizer.push(event.text)
+                    if visible:
+                        turn.parts.append(visible)
+                        yield TextEvent(content=visible)
+                elif event.kind == "end":
+                    end = event
+            tail = sanitizer.finish()
+            if tail:
+                turn.parts.append(tail)
+                yield TextEvent(content=tail)
+        finally:
+            span.end(
+                input_tokens=0 if end is None else end.input_tokens,
+                output_tokens=0 if end is None else end.output_tokens,
+                stop_reason=None if end is None else end.stop_reason,
+            )
+        step_index += 1
         if end is None:
-            span.end(summary="model", input_tokens=0, output_tokens=0)
             break
         turn.input_tokens += end.input_tokens
         turn.output_tokens += end.output_tokens
-        span.end(
-            summary=end.stop_reason or "model",
-            input_tokens=end.input_tokens,
-            output_tokens=end.output_tokens,
-        )
         if not end.tool_calls or forced:
             break
         tool_results: list[dict[str, Any]] = []
@@ -224,12 +260,18 @@ async def _drive(
                 tool_results.append(_budget_result(call.id))
                 continue
             calls += 1
+            turn.tool_calls = calls
             yield StepEvent(tool=call.name, summary=f"Running {call.name}.", duration_ms=0)
             started = time.perf_counter()
-            tool_span = tracer.start_tool_span(tool=call.name)
+            tool_span = tracer.start_tool_span(tool=call.name, arguments=call.arguments)
             outcome = _run_tool(db_factory, encoders, turn, call.name, call.arguments)
             duration_ms = max(0, int((time.perf_counter() - started) * 1000))
-            tool_span.end(summary=outcome.summary, result_count=outcome.result_count)
+            encoded = outcome_json(outcome)
+            tool_span.end(
+                result_count=outcome.result_count,
+                result_bytes=len(encoded.encode("utf-8")),
+                ok="error" not in outcome.payload,
+            )
             turn.trace.append(
                 {
                     "tool": call.name,
@@ -245,7 +287,7 @@ async def _drive(
                 {
                     "type": "tool_result",
                     "tool_use_id": call.id,
-                    "content": outcome_json(outcome),
+                    "content": encoded,
                 }
             )
         if end.content:

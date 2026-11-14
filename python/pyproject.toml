@@ -7,10 +7,14 @@ requires-python = ">=3.11"
 # numpy, pillow and tifffile write the synthetic fixture slides. OpenSlide
 # (openslide-python + the openslide-bin wheel) is part of the API install so the
 # tile server and CI do not need apt packages. The Databricks SDK is the Volume client.
+# mlflow-tracing is the lightweight tracing SDK. The full `mlflow` package is not
+# installed: it pulls the ML stack. sqlparse is imported by the tracing package's
+# local file store and is not declared by that package.
 dependencies = [
     "anthropic>=0.40",
     "databricks-sdk>=0.40",
     "fastapi>=0.115",
+    "mlflow-tracing>=3.18",
     "numpy>=2.4.6",
     "openslide-bin>=4.0",
     "openslide-python>=1.4",
@@ -20,6 +24,7 @@ dependencies = [
     "pyarrow>=26.0.1",
     "pydantic>=2.10",
     "pydantic-settings>=2.6",
+    "sqlparse>=0.6.1",
     "tifffile>=2026.3.3",
     "uvicorn[standard]>=0.32",
 ]
