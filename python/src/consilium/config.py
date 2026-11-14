@@ -87,6 +87,10 @@ class Settings(BaseSettings):
     hf_token: SecretStr | None = Field(default=None, repr=False)
     databricks_host: str | None = None
     databricks_token: SecretStr | None = Field(default=None, repr=False)
+    databricks_volume_root: str | None = None
+    databricks_warehouse_id: str | None = None
+    databricks_catalog: str | None = None
+    databricks_schema: str | None = None
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -147,8 +151,10 @@ class Settings(BaseSettings):
     @field_validator(
         "anthropic_api_key",
         "hf_token",
-        "databricks_host",
         "databricks_token",
+        "databricks_warehouse_id",
+        "databricks_catalog",
+        "databricks_schema",
         mode="before",
     )
     @classmethod
@@ -156,6 +162,14 @@ class Settings(BaseSettings):
         if _blank(value):
             return None
         return value
+
+    @field_validator("databricks_host", "databricks_volume_root", mode="before")
+    @classmethod
+    def strip_databricks_location(cls, value: object) -> object:
+        """Blank values stay unset. A trailing slash is removed before use."""
+        if _blank(value):
+            return None
+        return str(value).strip().rstrip("/")
 
     @field_serializer(
         "anthropic_api_key",

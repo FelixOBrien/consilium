@@ -38,8 +38,9 @@ As a Data operator, I want the same data in Delta tables and in Lakebase so that
 - **Priority:** P0
 - **Covers:** F-09 stage 10, F-09.9
 - **Acceptance:**
-  - Given parquet files in the Volume, when I run the Databricks notebook, then bronze, silver and gold tables exist and Lakebase holds the gold rows.
-  - Given the three stores, when I compare row counts per table, then parquet, gold and Lakebase agree.
+  - Given parquet files in the Volume, when I run the Databricks notebook, then bronze, silver and gold tables exist for each pipeline model.
+  - Given the full export, when I compare row counts, then parquet and Delta gold agree.
+  - Given `consilium.pipeline subset` and `consilium.pipeline load` of that subset, when I compare row counts, then Lakebase agrees with the subset. `consilium.pipeline reconcile --subset-from` checks both. <!-- pragma: allowlist secret -->
 
 ## US-09.4 · Ingest one new slide and watch it arrive
 

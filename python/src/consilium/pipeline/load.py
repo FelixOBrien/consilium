@@ -13,12 +13,14 @@ then only rows that belong to fixture cases are removed.
 
 ``0001_init.sql`` is applied first, without requiring ``0002_indexes.sql``.
 Index build runs afterwards, including when those indexes already exist.
-``migrate`` still refuses Lakebase URLs (SKO-280). The ``COPY`` statements
-are ordinary parameterised psycopg SQL and do not depend on that refusal.
+Lakebase URLs are migrated with ``sslmode=require`` and the same pgvector
+indexes. ``SEARCH_BACKEND=lakebase`` is not used: this loader never creates
+``lakebase_ann`` or ``lakebase_bm25``.
 """
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
@@ -31,13 +33,14 @@ from psycopg import sql
 
 from consilium.db.connection import connect, resolve_database_url  # pragma: allowlist secret
 from consilium.db.migrate import (  # pragma: allowlist secret
-    LakebaseMigrationRefused,
     MigrationFile,
     list_migrations,
     migrate,
     split_sql,
 )
 from consilium.pipeline.cohort import TIER_CASE_COUNTS  # pragma: allowlist secret
+
+logger = logging.getLogger(__name__)
 
 DEMO_SLIDES = TIER_CASE_COUNTS["demo"]
 BATCH_ROWS = 2000
@@ -89,6 +92,9 @@ class LoadResult:
     indexes_applied: tuple[str, ...]
     maintenance_work_mem: str
     max_parallel_maintenance_workers: str
+    pg_database_size: int = 0
+    subset_cases: int | None = None
+    estimated_bytes: int | None = None
 
     def summary(self) -> str:
         lines = [f"{table} {self.counts[table]}" for table in PIPELINE_TABLES]
@@ -108,8 +114,13 @@ class LoadResult:
                 f"max_parallel_maintenance_workers {self.max_parallel_maintenance_workers}",
                 "indexes_applied "
                 + (",".join(self.indexes_applied) if self.indexes_applied else "none"),
+                f"pg_database_size {self.pg_database_size}",
             ]
         )
+        if self.subset_cases is not None:
+            lines.append(f"subset_cases {self.subset_cases}")
+        if self.estimated_bytes is not None:
+            lines.append(f"estimated_bytes {self.estimated_bytes}")
         return "\n".join(lines) + "\n"
 
 
@@ -118,8 +129,69 @@ def load_parquet(
     *,
     database_url: str | None = None,
     replace_fixtures: bool = False,
+    max_cases: int | None = None,
+    byte_budget: int | None = None,
 ) -> LoadResult:
-    """Load the eight pipeline parquets, then build HNSW and GIN indexes."""
+    """Load the eight pipeline parquets, then build HNSW and GIN indexes.
+
+    ``max_cases`` writes a deterministic Lakebase subset into a temporary
+    directory and loads that. The full export is left untouched.
+    """
+    directory = Path(export_dir)
+    if max_cases is not None:
+        return _load_subset(
+            directory,
+            database_url=database_url,
+            replace_fixtures=replace_fixtures,
+            max_cases=max_cases,
+            byte_budget=byte_budget,
+        )
+    return _load_directory(
+        directory,
+        database_url=database_url,
+        replace_fixtures=replace_fixtures,
+    )
+
+
+def _load_subset(
+    directory: Path,
+    *,
+    database_url: str | None,
+    replace_fixtures: bool,
+    max_cases: int,
+    byte_budget: int | None,
+) -> LoadResult:
+    import tempfile
+    from dataclasses import replace
+
+    from consilium.pipeline.subset import BYTE_BUDGET, write_subset  # pragma: allowlist secret
+
+    with tempfile.TemporaryDirectory(prefix="consilium-subset-") as tmp:  # pragma: allowlist secret
+        subset = write_subset(
+            directory,
+            Path(tmp) / "export",
+            max_cases=max_cases,
+            byte_budget=BYTE_BUDGET if byte_budget is None else byte_budget,
+        )
+        loaded = _load_directory(
+            subset.out_dir,
+            database_url=database_url,
+            replace_fixtures=replace_fixtures,
+        )
+    return replace(
+        loaded,
+        subset_cases=len(subset.case_ids),
+        estimated_bytes=subset.estimated_bytes,
+    )
+
+
+def _load_directory(
+    export_dir: Path,
+    *,
+    database_url: str | None = None,
+    replace_fixtures: bool = False,
+) -> LoadResult:
+    """Load one export directory, then build HNSW and GIN indexes."""
     directory = Path(export_dir)
     _require_files(directory)
     url = database_url if database_url is not None else resolve_database_url(None)
@@ -137,8 +209,10 @@ def load_parquet(
         applied, maintenance, conn = _ensure_indexes(conn, url)
         index_elapsed = time.perf_counter() - index_started
         counts, corpus = _measure(conn)
+        database_bytes = _database_bytes(conn)
     finally:
         conn.close()
+    logger.info("pg_database_size %s", database_bytes)
     return LoadResult(
         counts=counts,
         patch_in_corpus_true=corpus["patch_true"],
@@ -155,6 +229,7 @@ def load_parquet(
         max_parallel_maintenance_workers=maintenance.get(
             "max_parallel_maintenance_workers", "default"
         ),
+        pg_database_size=database_bytes,
     )
 
 
@@ -163,13 +238,8 @@ def _ensure_schema(url: str) -> None:
 
     A database that already has ``0002_indexes.sql`` is not an error: schema
     migration skips applied files and this call does not ask for indexes.
-    Lakebase URLs are refused by ``migrate`` until SKO-280; the copy below
-    still runs when that schema was applied some other way.
     """
-    try:
-        migrate(url, include_schema=True, include_indexes=False)
-    except LakebaseMigrationRefused:
-        return
+    migrate(url, include_schema=True, include_indexes=False)
 
 
 def _require_files(directory: Path) -> None:
@@ -899,6 +969,13 @@ def _recorded_checksums(conn: psycopg.Connection) -> dict[str, str]:
         return {}
     rows = conn.execute("select filename, checksum from schema_migration").fetchall()
     return {filename: checksum for filename, checksum in rows}
+
+
+def _database_bytes(conn: psycopg.Connection) -> int:
+    row = conn.execute("select pg_database_size(current_database())").fetchone()
+    if row is None:
+        return 0
+    return int(row[0])
 
 
 def _measure(conn: psycopg.Connection) -> tuple[dict[str, int], dict[str, int]]:
