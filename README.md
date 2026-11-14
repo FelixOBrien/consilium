@@ -44,6 +44,7 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Library | [timm](https://github.com/huggingface/pytorch-image-models) | Pipeline vision backbones | Apache-2.0 |
 | Library | [Transformers](https://github.com/huggingface/transformers) | CONCH-Z and report encoders | Apache-2.0 |
 | Library | [Hugging Face Hub](https://github.com/huggingface/huggingface_hub) | Model download for the pipeline | Apache-2.0 |
+| Library | [PyArrow](https://arrow.apache.org/) | Cohort manifest clinical table (`gdc_cases.parquet`) | Apache-2.0 |
 | Library | [OpenSlide](https://openslide.org/) (`openslide-python`, `openslide-bin`) | Tile server, optional install | LGPL-2.1 |
 | Platform | Databricks Free Edition (Unity Catalog, Delta, Lakebase, Apps) | Lakehouse, vector search, app hosting | — |
 

@@ -1,0 +1,439 @@
+[
+  {
+    "id": "case-TCGA-AA-0001",
+    "case_id": "case-TCGA-AA-0001",
+    "submitter_id": "TCGA-AA-0001",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61,
+      "days_to_birth": -22275
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Not Reported",
+        "classification_of_tumor": "not reported"
+      },
+      {
+        "primary_diagnosis": "Invented progression",
+        "classification_of_tumor": "Progression",
+        "morphology": "8000/3"
+      },
+      {
+        "primary_diagnosis": "Invented duct carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8500/3",
+        "icd_10_code": "C50.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0002",
+    "case_id": "case-TCGA-AA-0002",
+    "submitter_id": "TCGA-AA-0002",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-BB-0001",
+    "case_id": "case-TCGA-BB-0001",
+    "submitter_id": "TCGA-BB-0001",
+    "project": {
+      "project_id": "TCGA-LUAD"
+    },
+    "demographic": {
+      "sex_at_birth": "male",
+      "age_at_index": 70
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-BB-0002",
+    "case_id": "case-TCGA-BB-0002",
+    "submitter_id": "TCGA-BB-0002",
+    "project": {
+      "project_id": "TCGA-LUSC"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 64
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-CC-0001",
+    "case_id": "case-TCGA-CC-0001",
+    "submitter_id": "TCGA-CC-0001",
+    "project": {
+      "project_id": "TCGA-COAD"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 58
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Not Reported",
+        "classification_of_tumor": "primary"
+      },
+      {
+        "primary_diagnosis": "Invented prior",
+        "classification_of_tumor": "Prior primary",
+        "morphology": "8140/3"
+      },
+      {
+        "primary_diagnosis": "Invented colorectal carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C18.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-CC-0002",
+    "case_id": "case-TCGA-CC-0002",
+    "submitter_id": "TCGA-CC-0002",
+    "project": {
+      "project_id": "TCGA-READ"
+    },
+    "demographic": {
+      "sex_at_birth": "male",
+      "age_at_index": 66
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-DD-0001",
+    "case_id": "case-TCGA-DD-0001",
+    "submitter_id": "TCGA-DD-0001",
+    "project": {
+      "project_id": "TCGA-STAD"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 59
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-DD-0002",
+    "case_id": "case-TCGA-DD-0002",
+    "submitter_id": "TCGA-DD-0002",
+    "project": {
+      "project_id": "TCGA-ESCA"
+    },
+    "demographic": {
+      "sex_at_birth": "male",
+      "age_at_index": 62
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-EE-0001",
+    "case_id": "case-TCGA-EE-0001",
+    "submitter_id": "TCGA-EE-0001",
+    "project": {
+      "project_id": "TCGA-SKCM"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 55
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-EE-0002",
+    "case_id": "case-TCGA-EE-0002",
+    "submitter_id": "TCGA-EE-0002",
+    "project": {
+      "project_id": "TCGA-SKCM"
+    },
+    "demographic": {
+      "sex_at_birth": "male",
+      "age_at_index": 48
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-FF-0001",
+    "case_id": "case-TCGA-FF-0001",
+    "submitter_id": "TCGA-FF-0001",
+    "project": {
+      "project_id": "TCGA-DLBC"
+    },
+    "demographic": {
+      "sex_at_birth": "male",
+      "days_to_birth": -20000
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented lymphoma",
+        "classification_of_tumor": "primary",
+        "morphology": "9680/3",
+        "icd_10_code": "C83.3"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0003",
+    "case_id": "case-TCGA-AA-0003",
+    "submitter_id": "TCGA-AA-0003",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0004",
+    "case_id": "case-TCGA-AA-0004",
+    "submitter_id": "TCGA-AA-0004",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0006",
+    "case_id": "case-TCGA-AA-0006",
+    "submitter_id": "TCGA-AA-0006",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0007",
+    "case_id": "case-TCGA-AA-0007",
+    "submitter_id": "TCGA-AA-0007",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0008",
+    "case_id": "case-TCGA-AA-0008",
+    "submitter_id": "TCGA-AA-0008",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0009",
+    "case_id": "case-TCGA-AA-0009",
+    "submitter_id": "TCGA-AA-0009",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0010",
+    "case_id": "case-TCGA-AA-0010",
+    "submitter_id": "TCGA-AA-0010",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Not Reported",
+        "classification_of_tumor": "not reported"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0011",
+    "case_id": "case-TCGA-AA-0011",
+    "submitter_id": "TCGA-AA-0011",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented prior only",
+        "classification_of_tumor": "Prior primary",
+        "morphology": "8500/3"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AA-0012",
+    "case_id": "case-TCGA-AA-0012",
+    "submitter_id": "TCGA-AA-0012",
+    "project": {
+      "project_id": "TCGA-BRCA"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {
+    "id": "case-TCGA-AC-0001",
+    "case_id": "case-TCGA-AC-0001",
+    "submitter_id": "TCGA-AC-0001",
+    "project": {
+      "project_id": "TCGA-ACC"
+    },
+    "demographic": {
+      "sex_at_birth": "female",
+      "age_at_index": 61
+    },
+    "diagnoses": [
+      {
+        "primary_diagnosis": "Invented carcinoma",
+        "classification_of_tumor": "primary",
+        "morphology": "8140/3",
+        "icd_10_code": "C34.9"
+      }
+    ]
+  },
+  {}
+]

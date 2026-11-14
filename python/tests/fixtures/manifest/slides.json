@@ -1,0 +1,671 @@
+[
+  {
+    "id": "file-aa-0001-dx1",
+    "file_id": "file-aa-0001-dx1",
+    "file_name": "TCGA-AA-0001-01Z-00-DX1.file-aa-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0001",
+        "submitter_id": "TCGA-AA-0001",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 500000000
+  },
+  {
+    "id": "file-aa-0001-dx2",
+    "file_id": "file-aa-0001-dx2",
+    "file_name": "TCGA-AA-0001-01Z-00-DX2.file-aa-0001-dx2.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0001",
+        "submitter_id": "TCGA-AA-0001",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0002-dx2",
+    "file_id": "file-aa-0002-dx2",
+    "file_name": "TCGA-AA-0002-01Z-00-DX2.file-aa-0002-dx2.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0002",
+        "submitter_id": "TCGA-AA-0002",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0002-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 80000000
+  },
+  {
+    "id": "file-aa-0002-dx4",
+    "file_id": "file-aa-0002-dx4",
+    "file_name": "TCGA-AA-0002-01Z-00-DX4.file-aa-0002-dx4.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0002",
+        "submitter_id": "TCGA-AA-0002",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0002-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 40000000
+  },
+  {
+    "id": "file-bb-0001-dx1",
+    "file_id": "file-bb-0001-dx1",
+    "file_name": "TCGA-BB-0001-01Z-00-DX1.file-bb-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-BB-0001",
+        "submitter_id": "TCGA-BB-0001",
+        "project": {
+          "project_id": "TCGA-LUAD"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-BB-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-bb-0002-dx1",
+    "file_id": "file-bb-0002-dx1",
+    "file_name": "TCGA-BB-0002-01Z-00-DX1.file-bb-0002-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-BB-0002",
+        "submitter_id": "TCGA-BB-0002",
+        "project": {
+          "project_id": "TCGA-LUSC"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-BB-0002-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "ffpe"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-cc-0001-dx1",
+    "file_id": "file-cc-0001-dx1",
+    "file_name": "TCGA-CC-0001-01Z-00-DX1.file-cc-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-CC-0001",
+        "submitter_id": "TCGA-CC-0001",
+        "project": {
+          "project_id": "TCGA-COAD"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-CC-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-cc-0002-dx1",
+    "file_id": "file-cc-0002-dx1",
+    "file_name": "TCGA-CC-0002-01Z-00-DX1.file-cc-0002-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-CC-0002",
+        "submitter_id": "TCGA-CC-0002",
+        "project": {
+          "project_id": "TCGA-READ"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-CC-0002-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-dd-0001-dx1",
+    "file_id": "file-dd-0001-dx1",
+    "file_name": "TCGA-DD-0001-01Z-00-DX1.file-dd-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-DD-0001",
+        "submitter_id": "TCGA-DD-0001",
+        "project": {
+          "project_id": "TCGA-STAD"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-DD-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-dd-0002-dx1",
+    "file_id": "file-dd-0002-dx1",
+    "file_name": "TCGA-DD-0002-01Z-00-DX1.file-dd-0002-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-DD-0002",
+        "submitter_id": "TCGA-DD-0002",
+        "project": {
+          "project_id": "TCGA-ESCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-DD-0002-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-ee-0001-dx1",
+    "file_id": "file-ee-0001-dx1",
+    "file_name": "TCGA-EE-0001-01Z-00-DX1.file-ee-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-EE-0001",
+        "submitter_id": "TCGA-EE-0001",
+        "project": {
+          "project_id": "TCGA-SKCM"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-EE-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 1000000000
+  },
+  {
+    "id": "file-ee-0002-dx1",
+    "file_id": "file-ee-0002-dx1",
+    "file_name": "TCGA-EE-0002-01Z-00-DX1.file-ee-0002-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-EE-0002",
+        "submitter_id": "TCGA-EE-0002",
+        "project": {
+          "project_id": "TCGA-SKCM"
+        },
+        "samples": []
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-ff-0001-dx1",
+    "file_id": "file-ff-0001-dx1",
+    "file_name": "TCGA-FF-0001-01Z-00-DX1.file-ff-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-FF-0001",
+        "submitter_id": "TCGA-FF-0001",
+        "project": {
+          "project_id": "TCGA-DLBC"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-FF-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-ff-0001-dx1",
+    "file_id": "file-ff-0001-dx1",
+    "file_name": "TCGA-FF-0001-01Z-00-DX1.file-ff-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-FF-0001",
+        "submitter_id": "TCGA-FF-0001",
+        "project": {
+          "project_id": "TCGA-DLBC"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-FF-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0003-ts1",
+    "file_id": "file-aa-0003-ts1",
+    "file_name": "TCGA-AA-0003-01Z-00-TS1.file-aa-0003-ts1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0003",
+        "submitter_id": "TCGA-AA-0003",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0003-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0004-dx1",
+    "file_id": "file-aa-0004-dx1",
+    "file_name": "TCGA-AA-0004-01Z-00-DX1.file-aa-0004-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0004",
+        "submitter_id": "TCGA-AA-0004",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0004-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 1500000000
+  },
+  {
+    "id": "file-aa-0006-dx1",
+    "file_id": "file-aa-0006-dx1",
+    "file_name": "TCGA-AA-0006-01Z-00-DX1.file-aa-0006-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0006",
+        "submitter_id": "TCGA-AA-0006",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0006-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "Unknown"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0007-dx1",
+    "file_id": "file-aa-0007-dx1",
+    "file_name": "TCGA-AA-0007-01Z-00-DX1.file-aa-0007-dx1.tif",
+    "data_format": "TIF",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0007",
+        "submitter_id": "TCGA-AA-0007",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0007-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0008-dx1",
+    "file_id": "file-aa-0008-dx1",
+    "file_name": "TCGA-AA-0008-01Z-00-DX1.file-aa-0008-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0008",
+        "submitter_id": "TCGA-AA-0008",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0008-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0009-dx1",
+    "file_id": "file-aa-0009-dx1",
+    "file_name": "TCGA-AA-0009-01Z-00-DX1.file-aa-0009-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0009",
+        "submitter_id": "TCGA-AA-0009",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0009-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0010-dx1",
+    "file_id": "file-aa-0010-dx1",
+    "file_name": "TCGA-AA-0010-01Z-00-DX1.file-aa-0010-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0010",
+        "submitter_id": "TCGA-AA-0010",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0010-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0011-dx1",
+    "file_id": "file-aa-0011-dx1",
+    "file_name": "TCGA-AA-0011-01Z-00-DX1.file-aa-0011-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0011",
+        "submitter_id": "TCGA-AA-0011",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0011-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0012-dx1",
+    "file_id": "file-aa-0012-dx1",
+    "file_name": "TCGA-AA-0012-01Z-00-DX1.file-aa-0012-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0012",
+        "submitter_id": "TCGA-AA-0012",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0012-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "file-bad-barcode",
+    "file_id": "file-bad-barcode",
+    "file_name": "not-a-slide.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-ZZ-9999",
+        "submitter_id": "TCGA-ZZ-9999",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-ZZ-9999-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-aa-0013-dx1",
+    "file_id": "file-aa-0013-dx1",
+    "file_name": "TCGA-AA-0013-01Z-00-DX1.file-aa-0013-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AA-0013",
+        "submitter_id": "TCGA-AA-0013",
+        "project": {
+          "project_id": "TCGA-BRCA"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AA-0013-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  },
+  {
+    "id": "file-ac-0001-dx1",
+    "file_id": "file-ac-0001-dx1",
+    "file_name": "TCGA-AC-0001-01Z-00-DX1.file-ac-0001-dx1.svs",
+    "data_format": "SVS",
+    "access": "open",
+    "data_type": "Slide Image",
+    "experimental_strategy": "Diagnostic Slide",
+    "cases": [
+      {
+        "case_id": "case-TCGA-AC-0001",
+        "submitter_id": "TCGA-AC-0001",
+        "project": {
+          "project_id": "TCGA-ACC"
+        },
+        "samples": [
+          {
+            "submitter_id": "TCGA-AC-0001-01Z",
+            "sample_type": "Primary Tumor",
+            "preservation_method": "FFPE"
+          }
+        ]
+      }
+    ],
+    "file_size": 100000000
+  }
+]

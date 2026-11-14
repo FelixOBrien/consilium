@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.115",
     "pgvector>=0.3",
     "psycopg[binary,pool]>=3.2",
+    "pyarrow>=26.0.1",
     "pydantic>=2.10",
     "pydantic-settings>=2.6",
     "uvicorn[standard]>=0.32",
@@ -62,3 +63,6 @@ select = ["E", "F", "I", "UP", "B", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: live Hugging Face encoders; skipped unless CONSILIUM_RUN_HF_INTEGRATION=1", # pragma: allowlist secret
+]
