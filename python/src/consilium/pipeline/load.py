@@ -71,11 +71,6 @@ _ANALYZE = (
     "ANALYZE pathologist, patient, concept, path_case, slide, report, report_chunk, patch"
 )
 
-_MAINTENANCE = (
-    ("maintenance_work_mem", "512MB"),
-    ("max_parallel_maintenance_workers", "4"),
-)
-
 
 @dataclass(frozen=True)
 class LoadResult:
@@ -139,7 +134,7 @@ def load_parquet(
             _load_tables(conn, directory)
         load_elapsed = time.perf_counter() - started
         index_started = time.perf_counter()
-        applied, maintenance = _ensure_indexes(conn)
+        applied, maintenance, conn = _ensure_indexes(conn, url)
         index_elapsed = time.perf_counter() - index_started
         counts, corpus = _measure(conn)
     finally:
@@ -715,16 +710,67 @@ def _seed_ids() -> tuple[set[str], set[str], set[str], set[str]]:
     )
 
 
-def _ensure_indexes(conn: psycopg.Connection) -> tuple[list[str], dict[str, str]]:
+# 512MB is what a laptop can give the HNSW build. GitHub-hosted Postgres and
+# some managed instances only have about 64MB of /dev/shm: the SET is accepted,
+# then CREATE INDEX fails when it tries to allocate the whole value. Each
+# later row is a smaller build that still finishes.
+_INDEX_BUILD_SETTINGS: tuple[tuple[tuple[str, str], ...], ...] = (
+    (
+        ("maintenance_work_mem", "512MB"),
+        ("max_parallel_maintenance_workers", "4"),
+    ),
+    (
+        ("maintenance_work_mem", "64MB"),
+        ("max_parallel_maintenance_workers", "2"),
+    ),
+    (
+        ("maintenance_work_mem", "16MB"),
+        ("max_parallel_maintenance_workers", "0"),
+    ),
+)
+
+
+def _ensure_indexes(
+    conn: psycopg.Connection, url: str
+) -> tuple[list[str], dict[str, str], psycopg.Connection]:
     """Build pending HNSW and GIN indexes, then ``ANALYZE``.
 
-    Session settings are best-effort. Managed Postgres may reject them; the
-    index statements still run with the server defaults. Files already recorded
-    in ``schema_migration`` are not executed again.
+    Session settings are best-effort. A role that cannot ``SET`` them keeps
+    the server default. A host that cannot allocate ``maintenance_work_mem``
+    retries with a smaller value. Files already recorded in ``schema_migration``
+    are not executed again.
     """
-    conn.autocommit = True
-    maintenance = _set_maintenance(conn)
-    pending = _pending_indexes(conn)
+    current = conn
+    pending: list[MigrationFile] | None = None
+    last_error: psycopg.Error | None = None
+    try:
+        for settings in _INDEX_BUILD_SETTINGS:
+            current = _open_index_connection(current, url)
+            if pending is None:
+                pending = _pending_indexes(current)
+            maintenance = _set_maintenance(current, settings)
+            try:
+                applied = _apply_index_files(current, pending)
+            except psycopg.Error as exc:
+                if not _resource_limited(exc):
+                    raise
+                last_error = exc
+                _rollback_quietly(current)
+                continue
+            return applied, maintenance, current
+    except Exception:
+        if current is not conn:
+            _close_quietly(current)
+        raise
+    if current is not conn:
+        _close_quietly(current)
+    assert last_error is not None
+    raise last_error
+
+
+def _apply_index_files(
+    conn: psycopg.Connection, pending: list[MigrationFile]
+) -> list[str]:
     applied: list[str] = []
     with conn.transaction():
         for item in pending:
@@ -737,22 +783,80 @@ def _ensure_indexes(conn: psycopg.Connection) -> tuple[list[str], dict[str, str]
             )
             applied.append(item.filename)
         conn.execute(_ANALYZE)
-    return applied, maintenance
-
-
-def _set_maintenance(conn: psycopg.Connection) -> dict[str, str]:
-    applied: dict[str, str] = {}
-    statements = {
-        "maintenance_work_mem": "set maintenance_work_mem = '512MB'",
-        "max_parallel_maintenance_workers": "set max_parallel_maintenance_workers = 4",
-    }
-    for name, statement in statements.items():
-        try:
-            conn.execute(statement)
-        except psycopg.Error:
-            continue
-        applied[name] = dict(_MAINTENANCE)[name]
     return applied
+
+
+def _set_maintenance(
+    conn: psycopg.Connection, settings: tuple[tuple[str, str], ...]
+) -> dict[str, str]:
+    applied: dict[str, str] = {}
+    for name, value in settings:
+        try:
+            conn.execute("select set_config(%s, %s, false)", (name, value))
+        except psycopg.Error:
+            _reset_setting(conn, name)
+            continue
+        applied[name] = value
+    return applied
+
+
+def _reset_setting(conn: psycopg.Connection, name: str) -> None:
+    try:
+        conn.execute(sql.SQL("reset {}").format(sql.Identifier(name)))
+    except psycopg.Error:
+        return
+
+
+def _resource_limited(exc: psycopg.Error) -> bool:
+    """True when the index build asked for more shared memory than the host has."""
+    if isinstance(exc, (psycopg.errors.DiskFull, psycopg.errors.OutOfMemory)):
+        return True
+    sqlstate = getattr(exc, "sqlstate", None)
+    return isinstance(sqlstate, str) and sqlstate.startswith("53")
+
+
+def _open_index_connection(conn: psycopg.Connection, url: str) -> psycopg.Connection:
+    """Return a connection that can start the next index-build attempt.
+
+    A failed shared-memory allocation can leave the session unusable. The
+    loaded rows are already committed, so a new connection can build indexes.
+    """
+    if _connection_ok(conn):
+        conn.autocommit = True
+        return conn
+    _close_quietly(conn)
+    fresh = connect(url)
+    fresh.autocommit = True
+    return fresh
+
+
+def _connection_ok(conn: psycopg.Connection) -> bool:
+    if conn.closed:
+        return False
+    try:
+        if conn.info.status != psycopg.pq.ConnStatus.OK:
+            return False
+        conn.execute("select 1")
+        if not conn.autocommit:
+            conn.rollback()
+    except psycopg.Error:
+        return False
+    return True
+
+
+def _close_quietly(conn: psycopg.Connection) -> None:
+    try:
+        conn.close()
+    except psycopg.Error:
+        return
+
+
+def _rollback_quietly(conn: psycopg.Connection) -> None:
+    try:
+        if not conn.closed:
+            conn.rollback()
+    except psycopg.Error:
+        return
 
 
 def _pending_indexes(conn: psycopg.Connection) -> list[MigrationFile]:

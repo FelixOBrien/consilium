@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import h5py
 import numpy as np
+import psycopg
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -20,6 +21,7 @@ from consilium.embed import (  # pragma: allowlist secret
     MockTextEncoder,
     build_text_encoders,
 )
+from consilium.pipeline import load as pipeline_load  # pragma: allowlist secret
 from consilium.pipeline.__main__ import main  # pragma: allowlist secret
 from consilium.pipeline.export import export_cohort  # pragma: allowlist secret
 from consilium.pipeline.load import load_parquet  # pragma: allowlist secret
@@ -274,6 +276,33 @@ def test_replace_fixtures_drops_seed_rows_and_keeps_real_cases(
             (loaded_case,),
         ).fetchone()[0] == 1
     assert result.counts["path_case"] == 1 + _expected_counts(export_dir)["path_case"]
+
+
+def test_index_build_falls_back_when_shared_memory_is_short(
+    empty_database: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GitHub's Postgres service has about 64MB of /dev/shm, so 512MB fails."""
+    _build(tmp_path, n_cases=2, held_out=1, patches_per_slide=3)
+    calls = {"n": 0}
+    real = pipeline_load._apply_index_files
+
+    def fail_once(conn: object, pending: list[object]) -> list[str]:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise psycopg.errors.DiskFull(
+                "could not resize shared memory segment: No space left on device"
+            )
+        return real(conn, pending)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(pipeline_load, "_apply_index_files", fail_once)
+    result = load_parquet(tmp_path / "export", database_url=empty_database)
+    assert calls["n"] == 2
+    assert result.maintenance_work_mem == "64MB"
+    assert result.max_parallel_maintenance_workers == "2"
+    assert result.indexes_applied == ("0002_indexes.sql",)
+    _assert_loaded(empty_database, tmp_path / "export")
 
 
 def test_smoke_scale_load_timings(empty_database: str, tmp_path: Path) -> None:
