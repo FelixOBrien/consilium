@@ -40,6 +40,8 @@ None.
 A file of concepts in the repository, loaded and encoded by the pipeline. Start with about 20: general ones such as necrosis, mitotic figures, lymphocytic infiltrate, fibrosis, mucin, glandular differentiation, keratinisation, haemorrhage, plus a few per specialty.
 
 ## API shape
-`Concept` — `id`, `label`, `prompt`, `specialty`.
+`Concept` — `id`, `label`, `prompt`, `specialty`. Served by `GET /api/concepts`, optionally filtered by `specialty` (that specialty plus general concepts, in display order).
+
+`POST /api/slides/{id}/heatmap` is not a stored row. [F-06](../features/F06-phrase-heatmaps.md) sends `text` (the selected report word). A client may send `concept_id` instead of `text`, and may send `negative_text` with either. The response is per-patch scores, not embeddings.
 
 Never sent: the embeddings.

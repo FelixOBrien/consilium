@@ -88,6 +88,8 @@ All routes are under `/api`. The exact shapes are the Pydantic models; each feat
 | Ingestion | `POST /ingestion/jobs`, `GET /ingestion/jobs`, `GET /ingestion/jobs/{id}` |
 | System | `GET /health` |
 
+`POST /api/slides/{id}/heatmap` follows [F-06](features/F06-phrase-heatmaps.md). The request field `text` is the selected report word. The response lists every patch as `x`, `y`, `size` and `score` (min-max normalised to 0–1), the highest scores in `top`, and a `notice` that the shading is embedding similarity, not a finding. A client may send `concept_id` instead of `text` (exactly one of the two) and may send optional `negative_text` with either, so a stored phrase or the contrasting phrase from D9 stays available. `GET /api/concepts` returns [concept](models/concept.md) rows (`id`, `label`, `prompt`, `specialty`) and never returns embeddings.
+
 ## Configuration
 
 Environment variables, read through one settings module. `.env.example` lists them; real values never enter git.

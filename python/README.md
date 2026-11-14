@@ -12,6 +12,12 @@ uv run uvicorn consilium.api.app:app --reload <!-- pragma: allowlist secret -->
 
 `GET /api/health` returns `{"status":"ok"}`.
 
+Export the OpenAPI document and regenerate the web client (no database):
+
+```bash
+cd typescript && bun run gen:api
+```
+
 Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git.
 
 ```bash

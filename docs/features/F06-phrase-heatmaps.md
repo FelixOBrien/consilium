@@ -41,7 +41,8 @@ G1 and G3. It turns a sentence in a report into places to look, and lets the pat
 8. The report remains readable and selectable; embedding targets do not appear as a separate list.
 
 ## API
-- `POST /api/slides/{id}/heatmap` — body: `text` containing the selected target word. Returns per-patch scores.
+- `POST /api/slides/{id}/heatmap` — body `text` is the selected report word. Returns `text`, per-patch `{x, y, size, score}` min-max normalised to 0–1, the highest scores in `top`, and `notice` stating this is embedding similarity, not a finding.
+- Optional `concept_id` (from `GET /api/concepts`) may be sent instead of `text`. Optional `negative_text` may accompany either one. Exactly one of `text` or `concept_id` is required. This screen sends `text` alone. The optional fields keep [architecture D9](../architecture.md#decisions) and [concept](../models/concept.md) available; they are not chips or controls in this feature.
 
 ## Acceptance
 - Hovering an eligible report word reveals that it can be mapped; stop words do not become targets.

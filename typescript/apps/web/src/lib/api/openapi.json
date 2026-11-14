@@ -1,0 +1,5375 @@
+{
+  "components": {
+    "schemas": {
+      "Annotation": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/PathologistRef"
+          },
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RectGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/PointGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "rect",
+              "point"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "slide_id": {
+            "title": "Slide Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slide_id",
+          "case_id",
+          "author",
+          "can_edit",
+          "kind",
+          "geometry",
+          "label",
+          "note",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Annotation",
+        "type": "object"
+      },
+      "AnnotationCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RectGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/PointGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "kind": {
+            "enum": [
+              "rect",
+              "point"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "kind",
+          "geometry",
+          "label"
+        ],
+        "title": "AnnotationCreate",
+        "type": "object"
+      },
+      "AnnotationUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RectGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/PointGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "AnnotationUpdate",
+        "type": "object"
+      },
+      "CaseDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "accessioned_at": {
+            "format": "date-time",
+            "title": "Accessioned At",
+            "type": "string"
+          },
+          "assigned_to": {
+            "$ref": "#/components/schemas/PathologistRef"
+          },
+          "conclusion_line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion Line"
+          },
+          "icd10": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icd10"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientRef"
+          },
+          "patient_age": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Age"
+          },
+          "patient_sex": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sex"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prior_case_count": {
+            "minimum": 0.0,
+            "title": "Prior Case Count",
+            "type": "integer"
+          },
+          "report_status": {
+            "enum": [
+              "signed",
+              "draft",
+              "none"
+            ],
+            "title": "Report Status",
+            "type": "string"
+          },
+          "slide_count": {
+            "minimum": 0.0,
+            "title": "Slide Count",
+            "type": "integer"
+          },
+          "slides": {
+            "items": {
+              "$ref": "#/components/schemas/SlideSummary"
+            },
+            "title": "Slides",
+            "type": "array"
+          },
+          "specialty": {
+            "$ref": "#/components/schemas/Specialty"
+          },
+          "specimen_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specimen Label"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaseStatus"
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          }
+        },
+        "required": [
+          "id",
+          "patient",
+          "specimen_label",
+          "specialty",
+          "patient_sex",
+          "icd10",
+          "status",
+          "assigned_to",
+          "accessioned_at",
+          "slide_count",
+          "thumbnail_url",
+          "conclusion_line",
+          "slides",
+          "report_status",
+          "prior_case_count"
+        ],
+        "title": "CaseDetail",
+        "type": "object"
+      },
+      "CaseHit": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/PathologistRef"
+          },
+          "case": {
+            "$ref": "#/components/schemas/CaseSummary"
+          },
+          "matched_by": {
+            "items": {
+              "enum": [
+                "morphology",
+                "keyword",
+                "semantic"
+              ],
+              "type": "string"
+            },
+            "title": "Matched By",
+            "type": "array"
+          },
+          "passage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Passage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "patch_match_count": {
+            "minimum": 0.0,
+            "title": "Patch Match Count",
+            "type": "integer"
+          },
+          "patches": {
+            "items": {
+              "$ref": "#/components/schemas/PatchHit"
+            },
+            "title": "Patches",
+            "type": "array"
+          },
+          "same_patient": {
+            "title": "Same Patient",
+            "type": "boolean"
+          },
+          "score": {
+            "description": "Relative score within this response. Not a probability or a diagnosis.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "case",
+          "author",
+          "same_patient",
+          "score",
+          "matched_by",
+          "patches",
+          "patch_match_count",
+          "passage"
+        ],
+        "title": "CaseHit",
+        "type": "object"
+      },
+      "CaseStatus": {
+        "enum": [
+          "open",
+          "signed_out"
+        ],
+        "title": "CaseStatus",
+        "type": "string"
+      },
+      "CaseSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "accessioned_at": {
+            "format": "date-time",
+            "title": "Accessioned At",
+            "type": "string"
+          },
+          "assigned_to": {
+            "$ref": "#/components/schemas/PathologistRef"
+          },
+          "conclusion_line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion Line"
+          },
+          "icd10": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icd10"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/PatientRef"
+          },
+          "patient_age": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Age"
+          },
+          "patient_sex": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sex"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "slide_count": {
+            "minimum": 0.0,
+            "title": "Slide Count",
+            "type": "integer"
+          },
+          "specialty": {
+            "$ref": "#/components/schemas/Specialty"
+          },
+          "specimen_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specimen Label"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaseStatus"
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          }
+        },
+        "required": [
+          "id",
+          "patient",
+          "specimen_label",
+          "specialty",
+          "patient_sex",
+          "icd10",
+          "status",
+          "assigned_to",
+          "accessioned_at",
+          "slide_count",
+          "thumbnail_url",
+          "conclusion_line"
+        ],
+        "title": "CaseSummary",
+        "type": "object"
+      },
+      "Citation": {
+        "additionalProperties": false,
+        "properties": {
+          "case": {
+            "$ref": "#/components/schemas/CaseSummary"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "patch_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patch Id"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "slide_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slide Id"
+          }
+        },
+        "required": [
+          "case_id",
+          "case"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
+      "CitationsEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "type": {
+            "const": "citations",
+            "default": "citations",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "citations"
+        ],
+        "title": "CitationsEvent",
+        "type": "object"
+      },
+      "Concept": {
+        "additionalProperties": false,
+        "description": "Curated phrase. Embeddings are never included.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Specialty"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "prompt",
+          "specialty"
+        ],
+        "title": "Concept",
+        "type": "object"
+      },
+      "ConsultMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "attachments": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessageAttachments"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "citations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Citation"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citations"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ranking": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PathologistRank"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ranking"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "streaming",
+              "error"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool_trace": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ToolTraceStep"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Trace"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "content",
+          "attachments",
+          "citations",
+          "ranking",
+          "tool_trace",
+          "status",
+          "created_at"
+        ],
+        "title": "ConsultMessage",
+        "type": "object"
+      },
+      "ConsultMessageCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "attachments": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessageAttachments"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "ConsultMessageCreate",
+        "type": "object"
+      },
+      "ConsultThread": {
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ConsultMessage"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "title",
+          "created_at",
+          "updated_at",
+          "messages"
+        ],
+        "title": "ConsultThread",
+        "type": "object"
+      },
+      "ConsultThreadCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "new": {
+            "default": false,
+            "title": "New",
+            "type": "boolean"
+          }
+        },
+        "title": "ConsultThreadCreate",
+        "type": "object"
+      },
+      "DoneEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/ConsultMessage"
+          },
+          "type": {
+            "const": "done",
+            "default": "done",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "DoneEvent",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FieldError"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fields"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "additionalProperties": false,
+        "description": "Standard error body for 4xx responses.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "ErrorEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "const": "error",
+            "default": "error",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "ErrorEvent",
+        "type": "object"
+      },
+      "FieldError": {
+        "additionalProperties": false,
+        "properties": {
+          "loc": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Loc",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "message"
+        ],
+        "title": "FieldError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "HeatmapPatchScore": {
+        "additionalProperties": false,
+        "properties": {
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "size": {
+            "exclusiveMinimum": 0.0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "size",
+          "score"
+        ],
+        "title": "HeatmapPatchScore",
+        "type": "object"
+      },
+      "HeatmapRequest": {
+        "additionalProperties": false,
+        "description": "F-06 sends `text`. `concept_id` and `negative_text` are optional.",
+        "properties": {
+          "concept_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Id"
+          },
+          "negative_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negative Text"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "title": "HeatmapRequest",
+        "type": "object"
+      },
+      "HeatmapResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "concept_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Id"
+          },
+          "negative_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Negative Text"
+          },
+          "notice": {
+            "title": "Notice",
+            "type": "string"
+          },
+          "patches": {
+            "items": {
+              "$ref": "#/components/schemas/HeatmapPatchScore"
+            },
+            "title": "Patches",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "top": {
+            "items": {
+              "$ref": "#/components/schemas/HeatmapPatchScore"
+            },
+            "title": "Top",
+            "type": "array"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "text",
+          "notice",
+          "truncated",
+          "patches",
+          "top"
+        ],
+        "title": "HeatmapResponse",
+        "type": "object"
+      },
+      "IngestionCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "chunks": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunks"
+          },
+          "patches": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patches"
+          }
+        },
+        "title": "IngestionCounts",
+        "type": "object"
+      },
+      "IngestionJob": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "minimum": 0.0,
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "counts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IngestionCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dataset": {
+            "title": "Dataset",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "requested_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PathologistRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "slide_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slide Id"
+          },
+          "slide_path": {
+            "title": "Slide Path",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "download",
+                  "segment",
+                  "embed",
+                  "project",
+                  "thumbnails",
+                  "reports",
+                  "load",
+                  "index"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "stage_history": {
+            "items": {
+              "$ref": "#/components/schemas/StageRecord"
+            },
+            "title": "Stage History",
+            "type": "array"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "dataset",
+          "slide_path",
+          "case_id",
+          "slide_id",
+          "requested_by",
+          "status",
+          "stage",
+          "stage_history",
+          "counts",
+          "error",
+          "attempts",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "IngestionJob",
+        "type": "object"
+      },
+      "IngestionJobCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset": {
+            "minLength": 1,
+            "title": "Dataset",
+            "type": "string"
+          },
+          "slide_path": {
+            "minLength": 1,
+            "title": "Slide Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataset",
+          "slide_path"
+        ],
+        "title": "IngestionJobCreate",
+        "type": "object"
+      },
+      "MessageAttachments": {
+        "additionalProperties": false,
+        "properties": {
+          "case_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Ids"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Region"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "MessageAttachments",
+        "type": "object"
+      },
+      "Page_CaseSummary_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CaseSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "Page[CaseSummary]",
+        "type": "object"
+      },
+      "Page_PatientSummary_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PatientSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "Page[PatientSummary]",
+        "type": "object"
+      },
+      "Passage": {
+        "additionalProperties": false,
+        "properties": {
+          "highlights": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Highlights",
+            "type": "array"
+          },
+          "section": {
+            "$ref": "#/components/schemas/ReportSection"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "section",
+          "text",
+          "highlights"
+        ],
+        "title": "Passage",
+        "type": "object"
+      },
+      "PatchHit": {
+        "additionalProperties": false,
+        "properties": {
+          "patch_id": {
+            "title": "Patch Id",
+            "type": "integer"
+          },
+          "similarity": {
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Similarity",
+            "type": "number"
+          },
+          "size": {
+            "exclusiveMinimum": 0.0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "slide_id": {
+            "title": "Slide Id",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "patch_id",
+          "slide_id",
+          "x",
+          "y",
+          "size",
+          "similarity",
+          "thumbnail_url"
+        ],
+        "title": "PatchHit",
+        "type": "object"
+      },
+      "PatchRef": {
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "size": {
+            "exclusiveMinimum": 0.0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "slide_id": {
+            "title": "Slide Id",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "slide_id",
+          "case_id",
+          "x",
+          "y",
+          "size",
+          "thumbnail_url"
+        ],
+        "title": "PatchRef",
+        "type": "object"
+      },
+      "PatchSearchRequest": {
+        "additionalProperties": false,
+        "description": "One of patch_id, region, slide_id or text.",
+        "properties": {
+          "context_case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Case Id"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchFilters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "patch_id": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patch Id"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Region"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scope": {
+            "default": "corpus",
+            "enum": [
+              "corpus",
+              "slide"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "slide_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slide Id"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "title": "PatchSearchRequest",
+        "type": "object"
+      },
+      "Pathologist": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_demo_user": {
+            "title": "Is Demo User",
+            "type": "boolean"
+          },
+          "is_synthetic": {
+            "description": "Roster identities are synthetic, not real people.",
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "primary_specialty": {
+            "$ref": "#/components/schemas/Specialty"
+          },
+          "role_title": {
+            "title": "Role Title",
+            "type": "string"
+          },
+          "secondary_specialties": {
+            "items": {
+              "$ref": "#/components/schemas/Specialty"
+            },
+            "title": "Secondary Specialties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "primary_specialty",
+          "is_synthetic",
+          "role_title",
+          "secondary_specialties",
+          "is_demo_user",
+          "created_at"
+        ],
+        "title": "Pathologist",
+        "type": "object"
+      },
+      "PathologistRank": {
+        "additionalProperties": false,
+        "description": "Counts come from retrieval results, not from model prose.",
+        "properties": {
+          "case_count": {
+            "minimum": 0.0,
+            "title": "Case Count",
+            "type": "integer"
+          },
+          "case_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Case Ids",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pathologist_id": {
+            "title": "Pathologist Id",
+            "type": "string"
+          },
+          "specialty": {
+            "$ref": "#/components/schemas/Specialty"
+          }
+        },
+        "required": [
+          "pathologist_id",
+          "name",
+          "specialty",
+          "case_count",
+          "case_ids"
+        ],
+        "title": "PathologistRank",
+        "type": "object"
+      },
+      "PathologistRef": {
+        "additionalProperties": false,
+        "description": "Pathologist embedded in cases, reports and annotations.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_synthetic": {
+            "description": "Roster identities are synthetic, not real people.",
+            "title": "Is Synthetic",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "primary_specialty": {
+            "$ref": "#/components/schemas/Specialty"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "primary_specialty",
+          "is_synthetic"
+        ],
+        "title": "PathologistRef",
+        "type": "object"
+      },
+      "PatientDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "birth_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birth Year"
+          },
+          "case_count": {
+            "minimum": 0.0,
+            "title": "Case Count",
+            "type": "integer"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/CaseSummary"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_synthetic_linkage": {
+            "description": "True when longitudinal history links more than one TCGA donor.",
+            "title": "Is Synthetic Linkage",
+            "type": "boolean"
+          },
+          "latest_accessioned_at": {
+            "format": "date-time",
+            "title": "Latest Accessioned At",
+            "type": "string"
+          },
+          "open_case_count": {
+            "minimum": 0.0,
+            "title": "Open Case Count",
+            "type": "integer"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sex"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "signed_out_case_count": {
+            "minimum": 0.0,
+            "title": "Signed Out Case Count",
+            "type": "integer"
+          },
+          "specialties": {
+            "items": {
+              "$ref": "#/components/schemas/Specialty"
+            },
+            "title": "Specialties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "display_label",
+          "sex",
+          "case_count",
+          "is_synthetic_linkage",
+          "latest_accessioned_at",
+          "open_case_count",
+          "signed_out_case_count",
+          "specialties",
+          "birth_year",
+          "cases"
+        ],
+        "title": "PatientDetail",
+        "type": "object"
+      },
+      "PatientRef": {
+        "additionalProperties": false,
+        "properties": {
+          "case_count": {
+            "minimum": 0.0,
+            "title": "Case Count",
+            "type": "integer"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_synthetic_linkage": {
+            "description": "True when longitudinal history links more than one TCGA donor.",
+            "title": "Is Synthetic Linkage",
+            "type": "boolean"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sex"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "display_label",
+          "sex",
+          "case_count",
+          "is_synthetic_linkage"
+        ],
+        "title": "PatientRef",
+        "type": "object"
+      },
+      "PatientSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "case_count": {
+            "minimum": 0.0,
+            "title": "Case Count",
+            "type": "integer"
+          },
+          "display_label": {
+            "title": "Display Label",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_synthetic_linkage": {
+            "description": "True when longitudinal history links more than one TCGA donor.",
+            "title": "Is Synthetic Linkage",
+            "type": "boolean"
+          },
+          "latest_accessioned_at": {
+            "format": "date-time",
+            "title": "Latest Accessioned At",
+            "type": "string"
+          },
+          "open_case_count": {
+            "minimum": 0.0,
+            "title": "Open Case Count",
+            "type": "integer"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sex"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "signed_out_case_count": {
+            "minimum": 0.0,
+            "title": "Signed Out Case Count",
+            "type": "integer"
+          },
+          "specialties": {
+            "items": {
+              "$ref": "#/components/schemas/Specialty"
+            },
+            "title": "Specialties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "display_label",
+          "sex",
+          "case_count",
+          "is_synthetic_linkage",
+          "latest_accessioned_at",
+          "open_case_count",
+          "signed_out_case_count",
+          "specialties"
+        ],
+        "title": "PatientSummary",
+        "type": "object"
+      },
+      "PointGeometry": {
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "PointGeometry",
+        "type": "object"
+      },
+      "RankingEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "ranking": {
+            "items": {
+              "$ref": "#/components/schemas/PathologistRank"
+            },
+            "title": "Ranking",
+            "type": "array"
+          },
+          "type": {
+            "const": "ranking",
+            "default": "ranking",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ranking"
+        ],
+        "title": "RankingEvent",
+        "type": "object"
+      },
+      "RectGeometry": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "width": {
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "integer"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "RectGeometry",
+        "type": "object"
+      },
+      "Region": {
+        "additionalProperties": false,
+        "description": "Level-0 pixel rectangle, including the slide it belongs to.",
+        "properties": {
+          "height": {
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "slide_id": {
+            "minLength": 1,
+            "title": "Slide Id",
+            "type": "string"
+          },
+          "width": {
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "integer"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slide_id",
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "Region",
+        "type": "object"
+      },
+      "Report": {
+        "additionalProperties": false,
+        "description": "Signed or draft report. The value `withheld` is never sent.",
+        "properties": {
+          "additional_info": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Info"
+          },
+          "author": {
+            "$ref": "#/components/schemas/PathologistRef"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "clinical_history": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clinical History"
+          },
+          "conclusion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion"
+          },
+          "gross_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Description"
+          },
+          "icd10": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icd10"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_synthetic_author": {
+            "const": true,
+            "description": "Author and sign-out time are synthetic.",
+            "title": "Is Synthetic Author",
+            "type": "boolean"
+          },
+          "microscopic_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Microscopic Description"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          },
+          "status": {
+            "enum": [
+              "signed",
+              "draft"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "status",
+          "body",
+          "clinical_history",
+          "gross_description",
+          "microscopic_description",
+          "conclusion",
+          "additional_info",
+          "icd10",
+          "signed_at",
+          "author",
+          "is_synthetic_author"
+        ],
+        "title": "Report",
+        "type": "object"
+      },
+      "ReportNotReported": {
+        "additionalProperties": false,
+        "description": "Open case. Clinical history only; no diagnosis and no report body.",
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "clinical_history": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clinical History"
+          },
+          "status": {
+            "const": "none",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "status",
+          "clinical_history"
+        ],
+        "title": "ReportNotReported",
+        "type": "object"
+      },
+      "ReportSearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "context_case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Case Id"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchFilters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "mode": {
+            "default": "hybrid",
+            "enum": [
+              "hybrid",
+              "keyword",
+              "semantic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ReportSearchRequest",
+        "type": "object"
+      },
+      "ReportSection": {
+        "enum": [
+          "clinical_history",
+          "gross_description",
+          "microscopic_description",
+          "conclusion",
+          "additional_info",
+          "body"
+        ],
+        "title": "ReportSection",
+        "type": "string"
+      },
+      "SearchFilters": {
+        "additionalProperties": false,
+        "properties": {
+          "icd10_prefix": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icd10 Prefix"
+          },
+          "patient_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Id"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Specialty"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "stain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stain"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaseStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "SearchFilters",
+        "type": "object"
+      },
+      "SearchResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "hits": {
+            "items": {
+              "$ref": "#/components/schemas/CaseHit"
+            },
+            "title": "Hits",
+            "type": "array"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "query_kind": {
+            "enum": [
+              "patch",
+              "region",
+              "slide",
+              "text_patches",
+              "reports"
+            ],
+            "title": "Query Kind",
+            "type": "string"
+          },
+          "took_ms": {
+            "minimum": 0.0,
+            "title": "Took Ms",
+            "type": "integer"
+          },
+          "total_candidates": {
+            "minimum": 0.0,
+            "title": "Total Candidates",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query_kind",
+          "hits",
+          "total_candidates",
+          "took_ms"
+        ],
+        "title": "SearchResponse",
+        "type": "object"
+      },
+      "Sex": {
+        "enum": [
+          "F",
+          "M"
+        ],
+        "title": "Sex",
+        "type": "string"
+      },
+      "SimilarCases": {
+        "additionalProperties": false,
+        "description": "Q3 on the case's first slide, and Q5 on its report or clinical history.",
+        "properties": {
+          "reports": {
+            "$ref": "#/components/schemas/SearchResponse"
+          },
+          "slide": {
+            "$ref": "#/components/schemas/SearchResponse"
+          }
+        },
+        "required": [
+          "slide",
+          "reports"
+        ],
+        "title": "SimilarCases",
+        "type": "object"
+      },
+      "SlideDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "dzi_url": {
+            "title": "Dzi Url",
+            "type": "string"
+          },
+          "height": {
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "magnification": {
+            "exclusiveMinimum": 0.0,
+            "title": "Magnification",
+            "type": "number"
+          },
+          "mpp": {
+            "exclusiveMinimum": 0.0,
+            "title": "Mpp",
+            "type": "number"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "patch_count": {
+            "minimum": 0.0,
+            "title": "Patch Count",
+            "type": "integer"
+          },
+          "patch_size": {
+            "exclusiveMinimum": 0.0,
+            "title": "Patch Size",
+            "type": "integer"
+          },
+          "stain": {
+            "title": "Stain",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SlideStatus"
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "width": {
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "ordinal",
+          "stain",
+          "magnification",
+          "status",
+          "thumbnail_url",
+          "case_id",
+          "mpp",
+          "width",
+          "height",
+          "patch_size",
+          "patch_count",
+          "dzi_url"
+        ],
+        "title": "SlideDetail",
+        "type": "object"
+      },
+      "SlideScopeResponse": {
+        "additionalProperties": false,
+        "description": "Scope `slide` returns patches on one slide, not cases.",
+        "properties": {
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "patches": {
+            "items": {
+              "$ref": "#/components/schemas/PatchHit"
+            },
+            "title": "Patches",
+            "type": "array"
+          },
+          "query_kind": {
+            "enum": [
+              "patch",
+              "region",
+              "text_patches"
+            ],
+            "title": "Query Kind",
+            "type": "string"
+          },
+          "took_ms": {
+            "minimum": 0.0,
+            "title": "Took Ms",
+            "type": "integer"
+          },
+          "total_candidates": {
+            "minimum": 0.0,
+            "title": "Total Candidates",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query_kind",
+          "patches",
+          "total_candidates",
+          "took_ms"
+        ],
+        "title": "SlideScopeResponse",
+        "type": "object"
+      },
+      "SlideStatus": {
+        "enum": [
+          "pending",
+          "processing",
+          "ready",
+          "failed"
+        ],
+        "title": "SlideStatus",
+        "type": "string"
+      },
+      "SlideSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "magnification": {
+            "exclusiveMinimum": 0.0,
+            "title": "Magnification",
+            "type": "number"
+          },
+          "ordinal": {
+            "minimum": 1.0,
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "stain": {
+            "title": "Stain",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SlideStatus"
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ordinal",
+          "stain",
+          "magnification",
+          "status",
+          "thumbnail_url"
+        ],
+        "title": "SlideSummary",
+        "type": "object"
+      },
+      "Specialty": {
+        "enum": [
+          "breast",
+          "thorax",
+          "colorectal",
+          "gastrointestinal",
+          "hematologic",
+          "skin"
+        ],
+        "title": "Specialty",
+        "type": "string"
+      },
+      "StageRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "stage": {
+            "enum": [
+              "download",
+              "segment",
+              "embed",
+              "project",
+              "thumbnails",
+              "reports",
+              "load",
+              "index"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "StageRecord",
+        "type": "object"
+      },
+      "StepEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_ms": {
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          },
+          "type": {
+            "const": "step",
+            "default": "step",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "summary",
+          "duration_ms"
+        ],
+        "title": "StepEvent",
+        "type": "object"
+      },
+      "TextEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "type": {
+            "const": "text",
+            "default": "text",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "TextEvent",
+        "type": "object"
+      },
+      "ToolTraceStep": {
+        "additionalProperties": false,
+        "description": "Tool name, summary and duration. Tool inputs are never sent.",
+        "properties": {
+          "duration_ms": {
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "summary",
+          "duration_ms"
+        ],
+        "title": "ToolTraceStep",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Research prototype. Not a medical device and not for clinical use. The API retrieves precedent and cites cases; it does not diagnose.",
+    "title": "Research prototype",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/annotations/{annotation_id}": {
+      "delete": {
+        "operationId": "delete_annotation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "annotation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Annotation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Delete Annotation",
+        "tags": [
+          "annotations"
+        ]
+      },
+      "patch": {
+        "operationId": "update_annotation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "annotation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Annotation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Annotation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Update Annotation",
+        "tags": [
+          "annotations"
+        ]
+      }
+    },
+    "/api/cases": {
+      "get": {
+        "operationId": "list_cases",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "mine",
+                    "all"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "View"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CaseStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "specialty",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Specialty"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Specialty"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assigned_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assigned To"
+            }
+          },
+          {
+            "description": "ICD-10 prefix.",
+            "in": "query",
+            "name": "icd10",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ICD-10 prefix.",
+              "title": "Icd10"
+            }
+          },
+          {
+            "in": "query",
+            "name": "patient_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Patient Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_CaseSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "List Cases",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/cases/{case_id}": {
+      "get": {
+        "operationId": "get_case",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Case",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/cases/{case_id}/consult/threads": {
+      "post": {
+        "operationId": "start_consult_thread",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ConsultThreadCreate"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultThread"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Start Consult Thread",
+        "tags": [
+          "consult"
+        ]
+      }
+    },
+    "/api/cases/{case_id}/report": {
+      "get": {
+        "operationId": "get_case_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "draft": "#/components/schemas/Report",
+                      "none": "#/components/schemas/ReportNotReported",
+                      "signed": "#/components/schemas/Report"
+                    },
+                    "propertyName": "status"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Report"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReportNotReported"
+                    }
+                  ],
+                  "title": "Response Get Case Report"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Case Report",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/cases/{case_id}/similar": {
+      "get": {
+        "operationId": "get_similar_cases",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarCases"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Similar Cases",
+        "tags": [
+          "cases"
+        ]
+      }
+    },
+    "/api/concepts": {
+      "get": {
+        "operationId": "list_concepts",
+        "parameters": [
+          {
+            "description": "That specialty plus general concepts. Omit for the full list.",
+            "in": "query",
+            "name": "specialty",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Specialty"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "That specialty plus general concepts. Omit for the full list.",
+              "title": "Specialty"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Concept"
+                  },
+                  "title": "Response List Concepts",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "List Concepts",
+        "tags": [
+          "heatmaps"
+        ]
+      }
+    },
+    "/api/consult/threads/{thread_id}": {
+      "get": {
+        "operationId": "get_consult_thread",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultThread"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Consult Thread",
+        "tags": [
+          "consult"
+        ]
+      }
+    },
+    "/api/consult/threads/{thread_id}/messages": {
+      "post": {
+        "operationId": "create_consult_message",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Thread Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsultMessageCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "citations": "#/components/schemas/CitationsEvent",
+                      "done": "#/components/schemas/DoneEvent",
+                      "error": "#/components/schemas/ErrorEvent",
+                      "ranking": "#/components/schemas/RankingEvent",
+                      "step": "#/components/schemas/StepEvent",
+                      "text": "#/components/schemas/TextEvent"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/StepEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TextEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CitationsEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RankingEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DoneEvent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEvent"
+                    }
+                  ],
+                  "title": "Response Create Consult Message"
+                }
+              }
+            },
+            "description": "Server-sent events named step, text, citations, ranking, done and error. Each data payload is one consult event. The answer cites precedent and does not diagnose the open case."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Create Consult Message",
+        "tags": [
+          "consult"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "get_health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/ingestion/jobs": {
+      "get": {
+        "operationId": "list_ingestion_jobs",
+        "parameters": [
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IngestionJob"
+                  },
+                  "title": "Response List Ingestion Jobs",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "List Ingestion Jobs",
+        "tags": [
+          "ingestion"
+        ]
+      },
+      "post": {
+        "operationId": "create_ingestion_job",
+        "parameters": [
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestionJobCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionJob"
+                }
+              }
+            },
+            "description": "An active job already exists for this dataset and slide path."
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Create Ingestion Job",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/ingestion/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_ingestion_job",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionJob"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Ingestion Job",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "get_me",
+        "parameters": [
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pathologist"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
+    "/api/patches/{patch_id}": {
+      "get": {
+        "operationId": "get_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patch_id",
+            "required": true,
+            "schema": {
+              "title": "Patch Id",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatchRef"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Patch",
+        "tags": [
+          "patches"
+        ]
+      }
+    },
+    "/api/patches/{patch_id}/thumbnail": {
+      "get": {
+        "operationId": "get_patch_thumbnail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patch_id",
+            "required": true,
+            "schema": {
+              "title": "Patch Id",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {}
+            },
+            "description": "Patch thumbnail."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Patch Thumbnail",
+        "tags": [
+          "patches"
+        ]
+      }
+    },
+    "/api/pathologists": {
+      "get": {
+        "operationId": "list_pathologists",
+        "parameters": [
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Pathologist"
+                  },
+                  "title": "Response List Pathologists",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "List Pathologists",
+        "tags": [
+          "identity"
+        ]
+      }
+    },
+    "/api/patients": {
+      "get": {
+        "operationId": "list_patients",
+        "parameters": [
+          {
+            "description": "Match patient id or display label.",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Match patient id or display label.",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "multi_case",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Multi Case",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PatientSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "List Patients",
+        "tags": [
+          "patients"
+        ]
+      }
+    },
+    "/api/patients/{patient_id}": {
+      "get": {
+        "operationId": "get_patient",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Patient",
+        "tags": [
+          "patients"
+        ]
+      }
+    },
+    "/api/search/patches": {
+      "post": {
+        "operationId": "search_patches",
+        "parameters": [
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchSearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SearchResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SlideScopeResponse"
+                    }
+                  ],
+                  "title": "Response Search Patches"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Search Patches",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/search/reports": {
+      "post": {
+        "operationId": "search_reports",
+        "parameters": [
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportSearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Search Reports",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}": {
+      "get": {
+        "operationId": "get_slide",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlideDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Slide",
+        "tags": [
+          "slides"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}.dzi": {
+      "get": {
+        "operationId": "get_slide_dzi",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/xml": {}
+            },
+            "description": "Deep Zoom descriptor."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Slide Dzi",
+        "tags": [
+          "slides"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}/annotations": {
+      "get": {
+        "operationId": "list_slide_annotations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Annotation"
+                  },
+                  "title": "Response List Slide Annotations",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "List Slide Annotations",
+        "tags": [
+          "annotations"
+        ]
+      },
+      "post": {
+        "operationId": "create_slide_annotation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Annotation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Create Slide Annotation",
+        "tags": [
+          "annotations"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}/heatmap": {
+      "post": {
+        "description": "Score patches against a report word (`text`) or an optional concept.",
+        "operationId": "create_slide_heatmap",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatmapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatmapResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Create Slide Heatmap",
+        "tags": [
+          "slides"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}/patches/at": {
+      "get": {
+        "operationId": "get_patch_at",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "x",
+            "required": true,
+            "schema": {
+              "title": "X",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "y",
+            "required": true,
+            "schema": {
+              "title": "Y",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatchRef"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Patch At",
+        "tags": [
+          "slides"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}/thumbnail": {
+      "get": {
+        "operationId": "get_slide_thumbnail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {}
+            },
+            "description": "Whole-slide thumbnail."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Slide Thumbnail",
+        "tags": [
+          "slides"
+        ]
+      }
+    },
+    "/api/slides/{slide_id}_files/{level}/{col}_{row}.jpeg": {
+      "get": {
+        "operationId": "get_slide_tile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slide_id",
+            "required": true,
+            "schema": {
+              "title": "Slide Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "level",
+            "required": true,
+            "schema": {
+              "minimum": 0,
+              "title": "Level",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "col",
+            "required": true,
+            "schema": {
+              "minimum": 0,
+              "title": "Col",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "row",
+            "required": true,
+            "schema": {
+              "minimum": 0,
+              "title": "Row",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Acting pathologist id. Omit to act as the demo user.",
+            "in": "header",
+            "name": "X-User-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Acting pathologist id. Omit to act as the demo user.",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {}
+            },
+            "description": "Deep Zoom tile."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "The acting pathologist cannot change this."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          }
+        },
+        "summary": "Get Slide Tile",
+        "tags": [
+          "slides"
+        ]
+      }
+    }
+  }
+}
