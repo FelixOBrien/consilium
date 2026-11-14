@@ -8,7 +8,7 @@ This folder documents what the application does. A feature is one capability a u
 | --- | --- | --- | --- | --- | --- |
 | [F-01](F01-case-worklist.md) | Case worklist | P0 | planned | [US-01](../stories/F01-case-worklist.md) | S-01 |
 | [F-02](F02-case-search.md) | Case search | P0 | planned | [US-02](../stories/F02-case-search.md) | S-01, S-07 |
-| [F-03](F03-slide-viewer.md) | Slide viewer | P0 | in-progress | [US-03](../stories/F03-slide-viewer.md) | S-02 |
+| [F-03](F03-slide-viewer.md) | Slide viewer | P0 | in-progress | [US-03](../stories/F03-slide-viewer.md) | S-02, S-10 |
 | [F-04](F04-report-viewer.md) | Report viewer | P0 | planned | [US-04](../stories/F04-report-viewer.md) | S-03 |
 | [F-05](F05-evidence-search.md) | Evidence search | P0 | planned | [US-05](../stories/F05-evidence-search.md) | S-04 |
 | [F-06](F06-phrase-heatmaps.md) | Report-context similarity overlay | P1 | planned | [US-06](../stories/F06-phrase-heatmaps.md) | S-02, S-03 |

@@ -3,11 +3,11 @@ id: F-03
 title: Slide viewer
 status: in-progress
 priority: P0
-stories: [US-03.1, US-03.2, US-03.3, US-03.4]
+stories: [US-03.1, US-03.2, US-03.3, US-03.4, US-03.5]
 models: [case, slide, patch]
-screens: [S-02]
+screens: [S-02, S-10]
 depends_on: [F-01, F-09]
-linear: [SKO-265, SKO-270]
+linear: [SKO-265, SKO-270, SKO-290]
 ---
 
 # F-03 · Slide viewer
@@ -26,7 +26,7 @@ G1. The slide is the primary evidence. Every retrieval feature starts from, or r
 - Hosting overlays drawn by other features.
 
 **Out**
-- Side-by-side comparison of two slides (P2, noted in [S-04](../screens/S04-evidence-panel.md)).
+- Side-by-side comparison of two slides (P2, [S-10](../screens/S10-compare.md)).
 - Image adjustments such as brightness or stain normalisation.
 - Measurement tools.
 

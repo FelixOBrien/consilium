@@ -48,3 +48,18 @@ As a Pathologist, I want to select a piece of tissue by clicking it so that I ca
   - Given tissue under the cursor, when I click, then one patch is outlined and Find similar tissue is offered.
   - Given a selection, when I click on empty glass, then the selection clears.
   - Given overlays are present, when I hide one layer, then the others stay visible.
+
+## US-03.5 · Compare two slides at the same scale
+
+As a Pathologist, I want to view the open case and a precedent slide side by side at the same physical scale so that I can check retrieved tissue against the slide I am reading.
+
+- **Priority:** P2
+- **Covers:** F-03.2, F-03.5
+- **Acceptance:**
+  - Given two ready slides, when I open `/compare?left=<slide id>&right=<slide id>`, then both slides are shown, the left pane is labelled as the open case, the right pane is labelled as precedent, and the research notice stays visible.
+  - Given linked pan and zoom, when I pan or zoom one pane, then the other pane moves by the same physical distance and both panes show the same microns per screen pixel, using each slide's `mpp`.
+  - Given either slide has no `mpp`, when the panes are linked, then zoom is matched relatively and the pane header says so.
+  - Given the panes are linked, when I turn linking off, align them by hand, and turn linking on, then later movement stays linked from that alignment.
+  - Given a viewport in the URL, when I reload, then both panes return to the stored level-0 location and zoom.
+  - Given one slide id is missing, not found, or not ready, when the page opens, then that pane shows the failure and the other pane still works.
+  - Given the two panes, when I read the copy, then nothing states or implies that the slides share a diagnosis.

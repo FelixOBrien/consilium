@@ -8,6 +8,7 @@ declare module 'bun:test' {
 		toContain(expected: string): void;
 		toBeGreaterThan(expected: number): void;
 		toHaveLength(expected: number): void;
+		toBeCloseTo(expected: number, digits?: number): void;
 	}
 	export function describe(name: string, fn: () => void): void;
 	export function test(name: string, fn: () => void | Promise<void>): void;

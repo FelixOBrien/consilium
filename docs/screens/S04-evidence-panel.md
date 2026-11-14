@@ -68,6 +68,6 @@ The pathologist finds prior cases relevant to the one on screen, by tissue or by
 - **Truncated text** — the API's notice is shown under the query.
 
 ## Out of scope
-- Side-by-side comparison of the open slide and a result (P2). Open in a new browser tab serves the purpose.
+- Side-by-side comparison of the open slide and a result (P2, [S-10](S10-compare.md)). This panel does not open it.
 - Uploading an image to search with.
 - Any ordering, grouping or labelling of results by suggested diagnosis.
