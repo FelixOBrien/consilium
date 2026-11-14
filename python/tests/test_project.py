@@ -36,11 +36,14 @@ def test_default_install_is_the_api_and_gpu_deps_are_grouped() -> None:
         "anthropic",
     ):
         assert needle in joined
-    for heavy in ("torch", "timm", "transformers", "openslide", "trident"):
+    for needle in ("openslide-python", "openslide-bin", "databricks-sdk"):
+        assert needle in joined
+    for heavy in ("torch", "timm", "transformers", "trident"):
         assert heavy not in joined
 
     groups = data["dependency-groups"]
     assert isinstance(groups, dict)
+    assert "tiles" not in groups
     dev = " ".join(groups["dev"])
     assert "ruff" in dev
     assert "pytest" in dev
@@ -50,9 +53,6 @@ def test_default_install_is_the_api_and_gpu_deps_are_grouped() -> None:
     assert "transformers" in pipeline
     # PyPI "trident" is an unrelated package. Do not lock it under this name.
     assert "trident" not in pipeline
-    tiles = " ".join(groups["tiles"])
-    assert "openslide-python" in tiles
-    assert "openslide-bin" in tiles
 
     tool = data["tool"]
     assert isinstance(tool, dict)

@@ -54,3 +54,5 @@ Geometry is read from the file at pipeline stage 3. `embedding` is computed at s
 `SlideDetail` — adds `case_id`, `mpp`, `width`, `height`, `patch_size`, `patch_count`, `dzi_url`.
 
 Never sent: `embedding`, `storage_key`, `thumb_pack_key`, `source_path`.
+
+`GET /api/slides/{id}` returns `SlideDetail` for every stored status. When `status` is not `ready`, descriptor, tile and thumbnail routes respond `409` with error code `not_ready` and message `Slide status is {status}.` instead of reading the file.

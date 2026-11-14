@@ -37,13 +37,12 @@ uv run consilium db seed <!-- pragma: allowlist secret -->
 uv run python -m consilium.db seed <!-- pragma: allowlist secret -->
 ```
 
-`uv sync --group tiles` installs OpenSlide. The seed tests open the generated slides with it.
+`uv sync` installs OpenSlide (`openslide-python` and the `openslide-bin` wheel) with the API. Tile routes and the seed tests open slides with that wheel on Python 3.11 and 3.12; no apt package is required. `STORAGE_BACKEND=uc_volume` reads Unity Catalog Volume files through the Databricks SDK (`databricks-sdk`).
 
 Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git.
 
 ```bash
 uv sync --group pipeline   # torch, transformers, and h5py: offline pipeline and CPU text encoders
-uv sync --group tiles      # OpenSlide, for SVS headers and the tile server
 ```
 
 `consilium.embed` encodes image-query text with the CONCH-Z text tower and report text with `BAAI/bge-small-en-v1.5`, both on CPU. Those weights stay out of git. The default test run uses an in-process mock and does not download them. Set `CONSILIUM_RUN_HF_INTEGRATION=1` to run the live checks; CONCH-Z also needs `HF_TOKEN`. <!-- pragma: allowlist secret -->

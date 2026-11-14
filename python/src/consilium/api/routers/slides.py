@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Annotated
 
 from fastapi import APIRouter, Path, Query, Request, Response
+from psycopg import Connection
 
 from consilium.api.deps import Acting, DbConn, StoreDep  # pragma: allowlist secret
 from consilium.api.errors import fail  # pragma: allowlist secret
@@ -14,6 +17,16 @@ from consilium.api.schemas.concept import (  # pragma: allowlist secret
 from consilium.api.schemas.patch import PatchRef  # pragma: allowlist secret
 from consilium.api.schemas.slide import SlideDetail  # pragma: allowlist secret
 from consilium.db.concepts import heatmap_for  # pragma: allowlist secret
+from consilium.db.slides import find_patch_at, patch_ref, slide_detail  # pragma: allowlist secret
+from consilium.db.slides import get_slide as fetch_slide  # pragma: allowlist secret
+from consilium.tiles.dzi import (  # pragma: allowlist secret
+    TILE_CACHE_CONTROL,
+    TileOutOfRange,
+    descriptor,
+    slide_thumbnail,
+    tile_jpeg,
+)
+from consilium.tiles.store import SlideStore, StorageError  # pragma: allowlist secret
 
 router = APIRouter(tags=["slides"])
 
@@ -22,15 +35,52 @@ def _jpeg() -> Response:
     return Response(content=PLACEHOLDER_JPEG, media_type="image/jpeg")
 
 
+@contextmanager
+def _connection(request: Request) -> Iterator[Connection]:
+    pool = request.app.state.pool
+    if pool is None:
+        fail(500, "error", "Database pool is not configured.")
+    with pool.connection() as conn:
+        yield conn
+
+
+def _slide_store(request: Request) -> SlideStore:
+    store = getattr(request.app.state, "slide_store", None)
+    if store is None:
+        fail(500, "error", "Slide store is not configured.")
+    return store
+
+
+def _require_ready(status: str) -> None:
+    if status != "ready":
+        fail(409, "not_ready", f"Slide status is {status}.")
+
+
+def _storage_error(exc: StorageError) -> None:
+    fail(exc.status_code, exc.code, exc.message)
+
+
 @router.get(
     "/slides/{slide_id}.dzi",
     operation_id="get_slide_dzi",
     response_class=Response,
     responses={200: {"content": {"application/xml": {}}, "description": "Deep Zoom descriptor."}},
 )
-def get_slide_dzi(slide_id: str, _actor: Acting, store: StoreDep) -> Response:
-    slide = store.get_slide(slide_id)
-    xml = dzi_document(slide.width, slide.height)
+def get_slide_dzi(slide_id: str, request: Request, _actor: Acting, store: StoreDep) -> Response:
+    # Sync handler: FastAPI runs it on a worker thread, off the event loop.
+    if request.app.state.use_stub_store:
+        slide = store.get_slide(slide_id)
+        xml = dzi_document(slide.width, slide.height)
+        return Response(content=xml, media_type="application/xml")
+    with _connection(request) as conn:
+        row = fetch_slide(conn, slide_id)
+    if row is None:
+        fail(404, "not_found", "Slide not found.")
+    _require_ready(row.status)
+    try:
+        xml = descriptor(_slide_store(request), row.storage_key)
+    except StorageError as exc:
+        _storage_error(exc)
     return Response(content=xml, media_type="application/xml")
 
 
@@ -45,17 +95,41 @@ def get_slide_tile(
     level: Annotated[int, Path(ge=0)],
     col: Annotated[int, Path(ge=0)],
     row: Annotated[int, Path(ge=0)],
+    request: Request,
     _actor: Acting,
     store: StoreDep,
 ) -> Response:
-    del level, col, row
-    store.get_slide(slide_id)
-    return _jpeg()
+    if request.app.state.use_stub_store:
+        del level, col, row
+        store.get_slide(slide_id)
+        return _jpeg()
+    with _connection(request) as conn:
+        slide = fetch_slide(conn, slide_id)
+    if slide is None:
+        fail(404, "not_found", "Slide not found.")
+    _require_ready(slide.status)
+    try:
+        payload = tile_jpeg(_slide_store(request), slide.storage_key, level, col, row)
+    except TileOutOfRange:
+        fail(404, "not_found", "Tile is outside the slide.")
+    except StorageError as exc:
+        _storage_error(exc)
+    return Response(
+        content=payload,
+        media_type="image/jpeg",
+        headers={"Cache-Control": TILE_CACHE_CONTROL},
+    )
 
 
 @router.get("/slides/{slide_id}", response_model=SlideDetail, operation_id="get_slide")
-def get_slide(slide_id: str, _actor: Acting, store: StoreDep) -> SlideDetail:
-    return store.get_slide(slide_id)
+def get_slide(slide_id: str, request: Request, _actor: Acting, store: StoreDep) -> SlideDetail:
+    if request.app.state.use_stub_store:
+        return store.get_slide(slide_id)
+    with _connection(request) as conn:
+        row = fetch_slide(conn, slide_id)
+    if row is None:
+        fail(404, "not_found", "Slide not found.")
+    return slide_detail(row)
 
 
 @router.get(
@@ -64,9 +138,26 @@ def get_slide(slide_id: str, _actor: Acting, store: StoreDep) -> SlideDetail:
     response_class=Response,
     responses={200: {"content": {"image/jpeg": {}}, "description": "Whole-slide thumbnail."}},
 )
-def get_slide_thumbnail(slide_id: str, _actor: Acting, store: StoreDep) -> Response:
-    store.get_slide(slide_id)
-    return _jpeg()
+def get_slide_thumbnail(
+    slide_id: str, request: Request, _actor: Acting, store: StoreDep
+) -> Response:
+    if request.app.state.use_stub_store:
+        store.get_slide(slide_id)
+        return _jpeg()
+    with _connection(request) as conn:
+        row = fetch_slide(conn, slide_id)
+    if row is None:
+        fail(404, "not_found", "Slide not found.")
+    _require_ready(row.status)
+    try:
+        payload = slide_thumbnail(_slide_store(request), row.storage_key)
+    except StorageError as exc:
+        _storage_error(exc)
+    return Response(
+        content=payload,
+        media_type="image/jpeg",
+        headers={"Cache-Control": TILE_CACHE_CONTROL},
+    )
 
 
 @router.get(
@@ -78,10 +169,20 @@ def get_patch_at(
     slide_id: str,
     x: Annotated[int, Query()],
     y: Annotated[int, Query()],
+    request: Request,
     _actor: Acting,
     store: StoreDep,
 ) -> PatchRef:
-    return store.patch_at(slide_id, x, y)
+    if request.app.state.use_stub_store:
+        return store.patch_at(slide_id, x, y)
+    with _connection(request) as conn:
+        slide = fetch_slide(conn, slide_id)
+        if slide is None:
+            fail(404, "not_found", "Slide not found.")
+        found = find_patch_at(conn, slide_id, x, y)
+    if found is None:
+        fail(404, "not_found", "No patch contains that point.")
+    return patch_ref(found)
 
 
 @router.post(

@@ -1,7 +1,7 @@
 ---
 id: F-03
 title: Slide viewer
-status: planned
+status: in-progress
 priority: P0
 stories: [US-03.1, US-03.2, US-03.3, US-03.4]
 models: [case, slide, patch]
@@ -40,7 +40,7 @@ G1. The slide is the primary evidence. Every retrieval feature starts from, or r
 7. Dragging on the slide with the region tool selects a rectangle. A selected patch or rectangle offers **Find similar tissue** ([F-05](F05-evidence-search.md)), **Ask about this region** ([F-07](F07-consult-agent.md)) and **Annotate** ([F-08](F08-annotations.md)).
 8. Overlay layers stack in this order above the image: heatmap ([F-06](F06-phrase-heatmaps.md)), search-hit markers ([F-05](F05-evidence-search.md)), annotations ([F-08](F08-annotations.md)), selection. Each can be shown or hidden independently.
 9. If the slide file is not yet in the server cache, the first request fetches it. The viewer shows progress and the slide thumbnail until tiles arrive.
-10. A slide whose ingestion is not complete shows its status in place of the image.
+10. A slide whose ingestion is not complete shows its status in place of the image. `GET /api/slides/{id}` returns `SlideDetail` for that status. The Deep Zoom descriptor, tile routes, whole-slide thumbnail and patch thumbnail do not open the file: they respond `409` with the error envelope `not_ready` and message `Slide status is {status}.` (for example `Slide status is pending.`).
 
 ## API
 - `GET /api/slides/{id}` — slide metadata: dimensions, mpp, magnification, stain, patch size, status.
