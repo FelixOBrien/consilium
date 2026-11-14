@@ -2,19 +2,23 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
-from consilium.api.deps import Acting, StoreDep  # pragma: allowlist secret
+from consilium.api.deps import Acting, StoreDep, read_connection  # pragma: allowlist secret
 from consilium.api.schemas.case import CaseDetail, CaseSummary  # pragma: allowlist secret
 from consilium.api.schemas.common import CaseStatus, Page, Specialty  # pragma: allowlist secret
 from consilium.api.schemas.report import CaseReport  # pragma: allowlist secret
 from consilium.api.schemas.search import SimilarCases  # pragma: allowlist secret
+from consilium.db.cases import get_case as get_case_row  # pragma: allowlist secret
+from consilium.db.cases import get_report as get_report_row  # pragma: allowlist secret
+from consilium.db.cases import list_cases as list_case_rows  # pragma: allowlist secret
 
 router = APIRouter(tags=["cases"])
 
 
 @router.get("/cases", response_model=Page[CaseSummary], operation_id="list_cases")
 def list_cases(
+    request: Request,
     actor: Acting,
     store: StoreDep,
     view: Annotated[Literal["mine", "all"] | None, Query()] = None,
@@ -26,27 +30,47 @@ def list_cases(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     cursor: Annotated[str | None, Query()] = None,
 ) -> Page[CaseSummary]:
-    return store.list_cases(
-        actor=actor,
-        view=view,
-        status=status,
-        specialty=specialty,
-        assigned_to=assigned_to,
-        icd10=icd10,
-        patient_id=patient_id,
-        limit=limit,
-        cursor=cursor,
-    )
+    if request.app.state.use_stub_store:
+        return store.list_cases(
+            actor=actor,
+            view=view,
+            status=status,
+            specialty=specialty,
+            assigned_to=assigned_to,
+            icd10=icd10,
+            patient_id=patient_id,
+            limit=limit,
+            cursor=cursor,
+        )
+    with read_connection(request) as conn:
+        return list_case_rows(
+            conn,
+            actor_id=actor.id,
+            view=view,
+            status=None if status is None else status.value,
+            specialty=None if specialty is None else specialty.value,
+            assigned_to=assigned_to,
+            icd10=icd10,
+            patient_id=patient_id,
+            limit=limit,
+            cursor=cursor,
+        )
 
 
 @router.get("/cases/{case_id}", response_model=CaseDetail, operation_id="get_case")
-def get_case(case_id: str, _actor: Acting, store: StoreDep) -> CaseDetail:
-    return store.get_case(case_id)
+def get_case(case_id: str, request: Request, _actor: Acting, store: StoreDep) -> CaseDetail:
+    if request.app.state.use_stub_store:
+        return store.get_case(case_id)
+    with read_connection(request) as conn:
+        return get_case_row(conn, case_id)
 
 
 @router.get("/cases/{case_id}/report", response_model=CaseReport, operation_id="get_case_report")
-def get_case_report(case_id: str, _actor: Acting, store: StoreDep) -> CaseReport:
-    return store.get_report(case_id)
+def get_case_report(case_id: str, request: Request, _actor: Acting, store: StoreDep) -> CaseReport:
+    if request.app.state.use_stub_store:
+        return store.get_report(case_id)
+    with read_connection(request) as conn:
+        return get_report_row(conn, case_id)
 
 
 @router.get(
