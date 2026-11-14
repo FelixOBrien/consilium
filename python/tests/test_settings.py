@@ -14,6 +14,7 @@ from consilium.config import (  # pragma: allowlist secret
     SearchBackend,
     Settings,
     StorageBackend,
+    default_web_build_dir,
     get_settings,
     repo_root,
 )
@@ -37,6 +38,7 @@ def test_local_defaults() -> None:
     assert settings.databricks_warehouse_id is None
     assert settings.databricks_catalog is None
     assert settings.databricks_schema is None
+    assert settings.web_build_dir == default_web_build_dir()
     assert (settings.storage_root.parent / "docs" / "architecture.md").is_file()
 
 
@@ -91,6 +93,8 @@ def test_blank_values_keep_defaults(tmp_path: Path) -> None:
                 "HF_TOKEN=",
                 "DATABRICKS_HOST=",
                 "DATABRICKS_TOKEN=",
+                "DATABRICKS_VOLUME_ROOT=",
+                "WEB_BUILD_DIR=",
                 "",
             ]
         )
@@ -106,6 +110,8 @@ def test_blank_values_keep_defaults(tmp_path: Path) -> None:
     assert settings.hf_token is None
     assert settings.databricks_host is None
     assert settings.databricks_token is None
+    assert settings.databricks_volume_root is None
+    assert settings.web_build_dir == default_web_build_dir()
 
 
 def test_env_file_overrides_defaults(tmp_path: Path) -> None:
@@ -141,6 +147,38 @@ def test_databricks_host_and_volume_root_drop_trailing_slash(
     settings = Settings()
     assert settings.databricks_host == "https://example.cloud.databricks.com"
     assert settings.databricks_volume_root == volume_root
+
+
+def test_volume_root_fills_storage_root(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("STORAGE_BACKEND", "uc_volume")
+    monkeypatch.setenv(
+        "DATABRICKS_VOLUME_ROOT",
+        "/Volumes/main/consilium/raw/",  # pragma: allowlist secret
+    )
+    settings = Settings()
+    assert settings.databricks_volume_root == "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    assert settings.storage_root == Path(
+        "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    )
+
+
+def test_explicit_storage_root_wins(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("STORAGE_BACKEND", "uc_volume")
+    monkeypatch.setenv("STORAGE_ROOT", "/Volumes/other/raw")
+    monkeypatch.setenv(
+        "DATABRICKS_VOLUME_ROOT",
+        "/Volumes/main/consilium/raw",  # pragma: allowlist secret
+    )
+    settings = Settings()
+    assert settings.storage_root == Path("/Volumes/other/raw")
+    assert settings.databricks_volume_root == "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+
+
+def test_web_build_dir_from_the_environment(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("WEB_BUILD_DIR", str(tmp_path / "static_web"))
+    assert Settings().web_build_dir == tmp_path / "static_web"
 
 
 def test_secrets_are_masked() -> None:

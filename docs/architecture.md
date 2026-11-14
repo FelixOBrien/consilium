@@ -105,9 +105,10 @@ Environment variables, read through one settings module. `.env.example` lists th
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | secret, model id | Agent model. |
 | `HF_TOKEN` | secret | Gated CONCH-Z and CONCH v1.5 weights. TCGA slides and reports need no token. |
 | `DATABRICKS_HOST`, `DATABRICKS_TOKEN` | secret | Volume access and deployment from outside Databricks. A trailing slash on the host is removed. |
-| `DATABRICKS_VOLUME_ROOT` | `/Volumes/...` | Unity Catalog Volume that receives parquet, thumbnail packs, and slides. |
+| `DATABRICKS_VOLUME_ROOT` | `/Volumes/...` | Unity Catalog Volume that receives parquet, thumbnail packs, and slides. The App binds this path. When `STORAGE_BACKEND=uc_volume` and `STORAGE_ROOT` is still the local default, slides are read from it. |
 | `DATABRICKS_WAREHOUSE_ID` | warehouse id | Optional. Lets `consilium.pipeline reconcile` count Delta gold tables. | <!-- pragma: allowlist secret -->
 | `DATABRICKS_CATALOG`, `DATABRICKS_SCHEMA` | names | Optional Unity Catalog names for those gold counts. |
+| `WEB_BUILD_DIR` | path | Built SvelteKit directory served by FastAPI. Defaults to `typescript/apps/web/build` when that directory contains `index.html`. The Databricks App sets `static_web`. |
 | `MLFLOW_TRACING_ENABLED` | `true` \| `false` | Log each consult turn as an MLflow trace. Default `false`: the agent does not import MLflow and does not call Databricks. |
 | `MLFLOW_EXPERIMENT_NAME` | path | Experiment for those traces. Default `/Shared/consilium-consult`. | <!-- pragma: allowlist secret -->
 | `MLFLOW_TRACKING_URI` | `databricks` or a directory | Where traces go. Unset means `databricks`, using `DATABRICKS_HOST` and `DATABRICKS_TOKEN`. A local directory is the file store used in tests. Tracing stays off when the Databricks target is selected and either credential is missing. |

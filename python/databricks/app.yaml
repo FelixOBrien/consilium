@@ -1,0 +1,63 @@
+# Databricks App runtime. This file is the source of truth copied into the
+# staged bundle by scripts/stage_databricks_app.sh. It must sit at the root of
+# the directory that `databricks apps deploy` uploads.
+#
+# `command` is a sequence, not a shell. Databricks substitutes
+# DATABRICKS_APP_PORT in that sequence (including the ${DATABRICKS_APP_PORT:-8000}
+# form). No other variables expand there.
+#
+# Resource keys are attached on the App (Settings → Resources) before deploy.
+# `valueFrom` names the key. It never contains the secret or the volume path.
+#
+#   volume              Unity Catalog volume. Resolves to /Volumes/<catalog>/<schema>/<volume>.
+#   postgres            Lakebase database. Grants the App a role. The resolved
+#                       value is an endpoint path, not a libpq URL.
+#   database-url        Secret: Lakebase libpq URL with sslmode=require
+#   anthropic-api-key   Secret: ANTHROPIC_API_KEY
+#   hf-token            Secret: HF_TOKEN (gated CONCH-Z weights)
+#
+# Docs: https://docs.databricks.com/aws/en/dev-tools/databricks-apps/app-runtime
+#       https://docs.databricks.com/aws/en/dev-tools/databricks-apps/environment-variables
+
+command:
+  - uvicorn
+  - consilium.api.app:create_app  # pragma: allowlist secret
+  - --factory
+  - --host
+  - 0.0.0.0
+  - --port
+  - "${DATABRICKS_APP_PORT:-8000}"
+
+env:
+  - name: STORAGE_BACKEND
+    value: uc_volume
+  - name: SEARCH_BACKEND
+    value: pgvector
+  - name: LLM_PROVIDER
+    value: anthropic
+  - name: SLIDE_CACHE_DIR
+    value: /tmp/consilium-slides  # pragma: allowlist secret
+  - name: SLIDE_CACHE_MAX_GB
+    value: "4"
+  - name: WEB_BUILD_DIR
+    value: static_web
+  - name: HF_HOME
+    value: /tmp/consilium-hf  # pragma: allowlist secret
+  - name: STORAGE_ROOT
+    valueFrom: volume
+  - name: DATABRICKS_VOLUME_ROOT
+    valueFrom: volume
+  - name: LAKEBASE_ENDPOINT
+    valueFrom: postgres
+  - name: DATABASE_URL
+    valueFrom: database-url
+  - name: ANTHROPIC_API_KEY
+    valueFrom: anthropic-api-key
+  - name: HF_TOKEN
+    valueFrom: hf-token
+
+# /api/health answers before the text encoders load. 300s is the platform
+# maximum and covers a Lakebase compute wake on a cold start.
+health_check:
+  path: /api/health
+  timeout_seconds: 300
