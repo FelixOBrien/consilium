@@ -1,0 +1,30 @@
+# Local Postgres for Consilium. Postgres 17 matches Databricks Lakebase # pragma: allowlist secret
+# (verified 17.12 in docs/context.md). The image ships pgvector, including
+# halfvec. Data stays in the named volume `consilium_pgdata`. # pragma: allowlist secret
+#
+# Default URL for consilium.config when DATABASE_URL is unset is # pragma: allowlist secret
+# postgresql://localhost:5432/consilium (the current OS user, no password). # pragma: allowlist secret
+# This service uses a dedicated role so laptops do not depend on that user:
+#   postgresql://consilium:consilium@localhost:5432/consilium # pragma: allowlist secret
+# Put that in DATABASE_URL. It is a local development password, not a secret.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: consilium # pragma: allowlist secret
+      POSTGRES_PASSWORD: consilium # pragma: allowlist secret
+      POSTGRES_DB: consilium # pragma: allowlist secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - consilium_pgdata:/var/lib/postgresql/data # pragma: allowlist secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consilium -d consilium"] # pragma: allowlist secret
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  consilium_pgdata: # pragma: allowlist secret

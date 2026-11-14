@@ -12,6 +12,16 @@ uv run uvicorn consilium.api.app:app --reload <!-- pragma: allowlist secret -->
 
 `GET /api/health` returns `{"status":"ok"}`.
 
+Postgres for local development is `docker compose up -d` from the repo root
+(`pgvector/pgvector:pg17`, database `consilium`). Then: <!-- pragma: allowlist secret -->
+
+```bash
+DATABASE_URL=postgresql://consilium:consilium@localhost:5432/consilium uv run consilium db migrate <!-- pragma: allowlist secret -->
+```
+
+`db migrate --schema-only` applies tables and leaves HNSW and GIN for
+`db migrate --indexes-only` after a bulk load. `db status` lists applied files.
+
 Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git.
 
 ```bash
