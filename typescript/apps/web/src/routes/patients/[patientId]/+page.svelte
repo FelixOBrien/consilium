@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
 	import {
 		Avatar,
 		Badge,
 		Button,
-		Dialog,
 		EmptyState,
 		Icon,
 		SegmentedControl,
@@ -15,92 +15,258 @@
 		TissueImage,
 		Typography
 	} from '#lib';
-	import { cases, evidenceResults, patients, tissueImages } from '#lib/data.js';
+	import { casePeek } from '#lib/case-peek.svelte.js';
+	import {
+		fetchPatient,
+		isNotFound,
+		PatientRequestError,
+		searchPatientReports,
+		searchPatientTissue
+	} from '#lib/patients/load.js';
+	import {
+		corpusSearchHref,
+		presentPatient,
+		presentSearchHits,
+		presentTimeline,
+		SYNTHETIC_PATIENT_LINKAGE
+	} from '#lib/patients/present.js';
+	import {
+		parsePatientSearch,
+		writePatientSearch,
+		type PatientSearchQuery
+	} from '#lib/patients/query.js';
+	import { patientRecordScreen, patientSearchScreen } from '#lib/patients/screen.js';
+	import type { CaseHit } from '#lib/patients/load.js';
+	import type { PatientDetail, PatientSearchMode, PeekPatch } from '#lib/patients/types.js';
 
-	let query = $state('');
-	let mode = $state('reports');
-	let screenState = $state('ready');
-	let peekOpen = $state(false);
-	let peekCase = $state(cases[4]);
+	const productName = 'Consilium'; // pragma: allowlist secret
+	import type { PageProps } from './$types';
 
-	const patientId = $derived(page.params.patientId);
-	const patient = $derived(patients.find((item) => item.id === patientId));
-	const patientCases = $derived(cases.filter((item) => item.patientId === patientId));
-	const signedOutCases = $derived(patientCases.filter((item) => item.status === 'Signed out'));
-	const openCasesCount = $derived(patientCases.length - signedOutCases.length);
-	const matchingCases = $derived(
-		query.trim()
-			? signedOutCases.filter(
-					(item) =>
-						item.conclusion.toLowerCase().includes(query.trim().toLowerCase()) ||
-						item.specimenLabel.toLowerCase().includes(query.trim().toLowerCase()) ||
-						item.specialty.toLowerCase().includes(query.trim().toLowerCase()) ||
-						item.icd10.toLowerCase().includes(query.trim().toLowerCase())
-				)
-			: []
+	let { data }: PageProps = $props();
+
+	let detail = $state<PatientDetail | null>(null);
+	let patientLoading = $state(true);
+	let notFound = $state(false);
+	let patientError = $state<string | null>(null);
+	let patientNonce = $state(0);
+	let hits = $state<CaseHit[]>([]);
+	let notice = $state<string | null>(null);
+	let searchLoading = $state(false);
+	let searchFailed = $state(false);
+	let searchError = $state('This search could not run.');
+	let searchNonce = $state(0);
+	// Edited locally, then committed to `q` on submit. Not a mirror of the URL.
+	// eslint-disable-next-line svelte/prefer-writable-derived -- the field stays editable until search is submitted
+	let draft = $state('');
+	// eslint-disable-next-line svelte/prefer-writable-derived -- mode can change before a query is submitted
+	let mode = $state<PatientSearchMode>('reports');
+	let patientToken = 0;
+	let searchToken = 0;
+
+	const patientId = $derived(data.patientId);
+	const search = $derived(parsePatientSearch(page.url.searchParams));
+	const record = $derived(
+		patientRecordScreen({
+			loading: patientLoading,
+			notFound,
+			failed: patientError !== null
+		})
+	);
+	const header = $derived(detail ? presentPatient(detail) : null);
+	const timeline = $derived(detail ? presentTimeline(detail) : []);
+	const results = $derived(presentSearchHits(patientId, search.mode, hits));
+	const thumbByCase = $derived(
+		new Map(timeline.map((item) => [item.id, item.thumbnailUrl] as const))
+	);
+	const resultsScreen = $derived(
+		patientSearchScreen({
+			active: search.q.length > 0,
+			loading: searchLoading,
+			failed: searchFailed,
+			hitCount: results.length
+		})
 	);
 
-	function openPeek(item: (typeof cases)[number]) {
-		peekCase = item;
-		peekOpen = true;
-	}
-
-	function passageFor(caseId: string) {
-		return (
-			evidenceResults.find((hit) => hit.id === caseId)?.passage ??
-			'Sectioned surgical specimen reviewed; see full report body in workspace.'
-		);
-	}
-
-	onMount(() => {
-		query = page.url.searchParams.get('q') ?? '';
-		mode = page.url.searchParams.get('mode') ?? 'reports';
-		screenState = page.url.searchParams.get('state') ?? 'ready';
+	$effect(() => {
+		draft = search.q;
 	});
+
+	$effect(() => {
+		mode = search.mode;
+	});
+
+	$effect(() => {
+		const id = patientId;
+		void patientNonce;
+		const token = ++patientToken;
+		patientLoading = true;
+		notFound = false;
+		patientError = null;
+		detail = null;
+		void loadRecord(id, token);
+	});
+
+	$effect(() => {
+		const id = patientId;
+		const query = search.q;
+		const searchMode = search.mode;
+		void searchNonce;
+		if (!query) {
+			hits = [];
+			notice = null;
+			searchLoading = false;
+			searchFailed = false;
+			return;
+		}
+		const token = ++searchToken;
+		searchLoading = true;
+		searchFailed = false;
+		hits = [];
+		notice = null;
+		void loadSearch(id, query, searchMode, token);
+	});
+
+	function commitSearch(next: PatientSearchQuery) {
+		const url = writePatientSearch(new URL(page.url.href), next);
+		const target = `${url.pathname}${url.search}`;
+		const current = `${page.url.pathname}${page.url.search}`;
+		if (target === current) {
+			searchNonce += 1;
+			return;
+		}
+		void goto(resolve(target as '/'), { replace: true, reset: false });
+	}
+
+	function submitSearch(event: SubmitEvent) {
+		event.preventDefault();
+		commitSearch({ q: draft.trim(), mode });
+	}
+
+	function onMode(value: string) {
+		const next: PatientSearchMode = value === 'tissue' ? 'tissue' : 'reports';
+		mode = next;
+		if (!search.q) return;
+		commitSearch({ q: search.q, mode: next });
+	}
+
+	function clearSearch() {
+		draft = '';
+		commitSearch({ q: '', mode: 'reports' });
+	}
+
+	function retryPatient() {
+		patientNonce += 1;
+	}
+
+	function retrySearch() {
+		searchNonce += 1;
+	}
+
+	function peek(caseId: string, patch?: PeekPatch | null) {
+		casePeek.open(patch ? { caseId, patch } : { caseId });
+	}
+
+	async function loadRecord(id: string, token: number) {
+		try {
+			const next = await fetchPatient(id);
+			if (token !== patientToken) return;
+			detail = next;
+			patientLoading = false;
+		} catch (error) {
+			if (token !== patientToken) return;
+			detail = null;
+			patientLoading = false;
+			if (isNotFound(error)) {
+				notFound = true;
+				return;
+			}
+			patientError =
+				error instanceof PatientRequestError
+					? error.message
+					: 'Check the connection and try again.';
+		}
+	}
+
+	async function loadSearch(
+		id: string,
+		query: string,
+		searchMode: PatientSearchMode,
+		token: number
+	) {
+		try {
+			const result =
+				searchMode === 'tissue'
+					? await searchPatientTissue(id, query)
+					: await searchPatientReports(id, query);
+			if (token !== searchToken) return;
+			hits = result.hits;
+			notice = result.notice;
+			searchLoading = false;
+		} catch (error) {
+			if (token !== searchToken) return;
+			hits = [];
+			notice = null;
+			searchLoading = false;
+			searchFailed = true;
+			searchError =
+				error instanceof PatientRequestError
+					? error.message
+					: 'Check the connection and try again.';
+		}
+	}
 </script>
 
 <svelte:head>
-	<title>{patient?.displayLabel ?? patientId} · Patient · Consilium</title>
+	<title>{header?.displayLabel ?? patientId} · Patient · {productName}</title>
 </svelte:head>
 
 <div class="page patient-page">
-	{#if screenState === 'loading'}
-		<section class="surface loading-wrap">
+	{#if record === 'loading'}
+		<section class="surface loading-wrap" aria-busy="true">
 			<Skeleton width="short" height="lg" />
 			<Skeleton width="medium" />
 			<Skeleton height="xl" />
+			<Skeleton height="xl" />
 		</section>
-	{:else if screenState === 'error'}
+	{:else if record === 'error'}
 		<StateMessage
 			tone="danger"
-			title="Patient record could not be loaded"
-			description="Check the API connection and try again."
+			title="The patient record could not be loaded"
+			description={patientError ?? 'Check the connection and try again.'}
 			action="Retry"
+			onaction={retryPatient}
 		/>
-	{:else if !patient}
-		<section class="surface">
+	{:else if record === 'not-found' || !header}
+		<section class="surface missing">
 			<EmptyState
 				icon="warning"
 				title="Patient not found"
-				description="No patient with this identifier exists in the loaded cohort."
-				action="Browse all patients"
-				onaction={() => (window.location.href = '/patients')}
+				description="No patient with this identifier is in the cohort."
 			/>
+			<div class="missing-actions">
+				<Button href="/patients" variant="primary">Patient directory</Button>
+				<Button href="/" variant="secondary">Worklist</Button>
+			</div>
 		</section>
 	{:else}
 		<div class="page-heading">
 			<div class="heading-copy">
-				<Typography as="span" style="eyebrow" tone="accent">S-09 · Patient record</Typography>
+				<Typography as="span" style="eyebrow" tone="accent">Patient record</Typography>
 				<div class="title-row">
-					<Typography as="h1" style="display">{patient.displayLabel}</Typography>
-					{#if patient.isSyntheticLinkage}
-						<Badge tone="synthetic">Synthetic longitudinal linkage</Badge>
+					<Typography as="h1" style="display">{header.displayLabel}</Typography>
+					{#if header.syntheticLinkage}
+						<Badge tone="synthetic">{SYNTHETIC_PATIENT_LINKAGE}</Badge>
 					{/if}
 				</div>
 				<Typography tone="secondary">
-					Sex {patient.sex} · Approx. birth year {patient.birthYear} · Specialties:
-					{patient.specialties.join(', ')}
+					Sex {header.sex} · {header.birthYear} · Specialties: {header.specialties}
 				</Typography>
+				{#if header.syntheticLinkage}
+					<Typography style="small" tone="secondary">
+						This longitudinal record links more than one de-identified donor. The pairing is
+						synthetic.
+					</Typography>
+				{/if}
 			</div>
 			<div class="header-actions">
 				<Button href="/patients" variant="secondary" icon="arrow-left">All patients</Button>
@@ -110,16 +276,16 @@
 
 		<div class="summary-grid">
 			<div class="surface stat">
-				<Typography style="title">{patientCases.length}</Typography>
+				<Typography style="title">{header.caseCount}</Typography>
 				<Typography style="small" tone="muted">Total cases</Typography>
 			</div>
 			<div class="surface stat">
-				<Typography style="title">{openCasesCount}</Typography>
-				<Typography style="small" tone="muted">Open (unreported)</Typography>
+				<Typography style="title">{header.openCount}</Typography>
+				<Typography style="small" tone="muted">Open</Typography>
 			</div>
 			<div class="surface stat">
-				<Typography style="title">{signedOutCases.length}</Typography>
-				<Typography style="small" tone="muted">Signed-out prior cases</Typography>
+				<Typography style="title">{header.signedOutCount}</Typography>
+				<Typography style="small" tone="muted">Signed out</Typography>
 			</div>
 		</div>
 
@@ -128,192 +294,239 @@
 				<div>
 					<Typography as="h2" style="section">Search this patient's cases</Typography>
 					<Typography style="small" tone="secondary">
-						Scoped to signed-out cases of {patient.displayLabel} (open unreported cases are excluded).
+						Signed-out cases of {header.displayLabel} only. Open cases are excluded.
 					</Typography>
 				</div>
 				<SegmentedControl
 					bind:value={mode}
+					onchange={onMode}
 					items={[
 						{ label: 'Reports', value: 'reports' },
 						{ label: 'Tissue', value: 'tissue' }
 					]}
 				/>
 			</div>
-			<div class="search-bar">
+			<form class="search-bar" onsubmit={submitSearch}>
 				<TextField
-					bind:value={query}
+					bind:value={draft}
 					icon={mode === 'reports' ? 'report' : 'evidence'}
 					placeholder={mode === 'reports'
-						? `Search ${patient.displayLabel} prior report text or ICD-10…`
-						: `Describe tissue morphology across ${patient.displayLabel}'s slides…`}
+						? `Search signed-out reports for ${header.displayLabel}…`
+						: `Describe tissue in ${header.displayLabel}'s slides…`}
+					name="q"
+					type="search"
 				/>
-				{#if query.trim()}
-					<Button variant="ghost" icon="close" onclick={() => (query = '')}>Clear</Button>
+				<Button type="submit" variant="primary">Search</Button>
+				{#if search.q || draft.trim()}
+					<Button type="button" variant="ghost" icon="close" onclick={clearSearch}>Clear</Button>
 				{/if}
-			</div>
+			</form>
 		</section>
 
-		{#if query.trim()}
+		{#if resultsScreen === 'loading'}
+			<section class="surface loading-wrap" aria-busy="true">
+				<Skeleton width="medium" />
+				<Skeleton height="xl" />
+			</section>
+		{:else if resultsScreen === 'error'}
+			<StateMessage
+				tone="danger"
+				title="This search could not run"
+				description={searchError}
+				action="Retry"
+				onaction={retrySearch}
+			/>
+		{:else if resultsScreen === 'empty'}
+			<section class="surface">
+				<EmptyState
+					icon="search"
+					title="No signed-out cases for this patient matched"
+					description="Clear the query to see the full timeline, or search across all patients."
+					action="Clear patient query"
+					onaction={clearSearch}
+				/>
+				<div class="missing-actions">
+					<Button href={corpusSearchHref(search.q, search.mode)} variant="secondary">
+						Search all patients
+					</Button>
+				</div>
+			</section>
+		{:else if resultsScreen === 'results'}
 			<section class="surface results-surface">
 				<header class="timeline-header">
 					<div>
 						<Typography as="h2" style="section">
-							Patient search results ({matchingCases.length})
+							Patient search results ({results.length})
 						</Typography>
 						<Typography style="small" tone="muted">
-							Mode: {mode === 'reports' ? 'Reports' : 'Tissue patches'} · Patient {patient.displayLabel}
+							{search.mode === 'reports' ? 'Reports' : 'Tissue'} · {header.displayLabel} · “{search.q}”
 						</Typography>
+						{#if notice}
+							<Typography style="small" tone="secondary">{notice}</Typography>
+						{/if}
 					</div>
 				</header>
-
-				{#if matchingCases.length === 0}
-					<EmptyState
-						icon="search"
-						title="No signed-out cases for this patient matched"
-						description="Clear the query to see the full timeline, or run the query across the whole corpus."
-						action="Clear patient query"
-						onaction={() => (query = '')}
-					/>
-				{:else}
-					<div class="timeline-list">
-						{#each matchingCases as item (item.id)}
-							<article class="case-card">
-								<TissueImage src={item.image} alt={`Slide thumbnail for ${item.id}`} size="lg" />
-								<div class="case-body">
-									<div class="case-top">
-										<div>
-											<Typography as="h3" style="subsection">{item.id}</Typography>
-											<Typography style="small" tone="secondary">
-												{item.specimenLabel} · {item.specialty} · {item.ageSex} · {item.accessioned}
-											</Typography>
-										</div>
-										<div class="badges">
-											<Badge tone="success">Signed out</Badge>
-											<Badge tone="neutral">{item.icd10}</Badge>
-										</div>
+				<div class="timeline-list">
+					{#each results as hit (hit.caseId)}
+						{@const thumb = thumbByCase.get(hit.caseId)}
+						<article class="case-card" data-case-id={hit.caseId} data-status="signed_out">
+							{#if hit.patches.length > 0}
+								<div class="patch-strip">
+									{#each hit.patches as patch (patch.id)}
+										<button
+											type="button"
+											class="thumb-button"
+											aria-label={`Peek patch ${patch.id} of ${hit.caseId}`}
+											onclick={() => peek(hit.caseId, patch.peek)}
+										>
+											<TissueImage
+												src={patch.thumbnailUrl}
+												alt={`Matched patch ${patch.id} for ${hit.caseId}`}
+												size="md"
+											/>
+										</button>
+									{/each}
+								</div>
+							{:else if thumb}
+								<TissueImage src={thumb} alt={`Slide thumbnail for ${hit.caseId}`} size="lg" />
+							{/if}
+							<div class="case-body">
+								<div class="case-top">
+									<div>
+										<Typography as="h3" style="subsection">{hit.caseId}</Typography>
+										<Typography style="small" tone="secondary">
+											{hit.specimenLabel} · {hit.specialtyLabel} · {hit.accessioned}
+										</Typography>
 									</div>
-
-									{#if mode === 'reports'}
-										<div class="passage">
-											<Typography style="eyebrow" tone="muted">Matched report excerpt</Typography>
-											<Typography>{item.conclusion} {passageFor(item.id)}</Typography>
-										</div>
-									{:else}
-										<div class="patch-strip">
-											{#each [item.image, tissueImages.epithelium] as patchImg, idx (idx)}
-												<TissueImage
-													src={patchImg}
-													alt={`Matched patch ${idx + 1} for ${item.id}`}
-													size="md"
-												/>
-											{/each}
-											<Typography style="small" tone="secondary">{item.conclusion}</Typography>
-										</div>
-									{/if}
-
-									<div class="case-footer">
-										<div class="author">
-											<Avatar name={item.pathologist} size="sm" />
-											<Typography style="small">{item.pathologist}</Typography>
-											<Badge tone="synthetic">Synthetic</Badge>
-										</div>
-										<div class="actions">
-											<Button variant="secondary" size="sm" onclick={() => openPeek(item)}>
-												Peek
-											</Button>
-											<Button
-												href={`/cases/${item.id}?panel=${mode === 'reports' ? 'report' : 'evidence'}`}
-												variant="primary"
-												size="sm"
-												icon="external"
-											>
-												Open case
-											</Button>
-										</div>
+									<div class="badges">
+										<Badge tone="success">Signed out</Badge>
+										{#if hit.icd10}
+											<Badge tone="neutral">{hit.icd10}</Badge>
+										{/if}
 									</div>
 								</div>
-							</article>
-						{/each}
-					</div>
-				{/if}
+								{#if hit.passage}
+									<div class="passage">
+										<Typography style="eyebrow" tone="muted">{hit.passage.sectionLabel}</Typography>
+										<Typography>
+											{#each hit.passage.segments as segment, index (index)}
+												{#if segment.highlighted}
+													<mark>{segment.text}</mark>
+												{:else}
+													{segment.text}
+												{/if}
+											{/each}
+										</Typography>
+									</div>
+								{:else if search.mode === 'reports'}
+									<Typography style="small" tone="secondary">
+										No highlighted passage was returned for this case.
+									</Typography>
+								{:else if hit.patches.length === 0}
+									<Typography style="small" tone="secondary">
+										No matching patch thumbnail was returned.
+									</Typography>
+								{/if}
+								<div class="case-footer">
+									<div class="author">
+										<Avatar name={hit.authorName} size="sm" />
+										<Button href={hit.authorHref} variant="ghost" size="sm">
+											{hit.authorName}
+										</Button>
+										{#if hit.authorSynthetic}
+											<Badge tone="synthetic">Synthetic</Badge>
+										{/if}
+									</div>
+									<div class="actions">
+										<Button
+											variant="secondary"
+											size="sm"
+											onclick={() => peek(hit.caseId, hit.peekPatch)}
+										>
+											Peek
+										</Button>
+										<Button href={hit.openHref} variant="primary" size="sm" icon="external">
+											Open case
+										</Button>
+									</div>
+								</div>
+							</div>
+						</article>
+					{/each}
+				</div>
 			</section>
 		{:else}
 			<section class="surface timeline-surface">
 				<header class="timeline-header">
 					<div>
 						<Typography as="h2" style="section">Chronological case timeline</Typography>
-						<Typography style="small" tone="muted">
-							{patientCases.length === 1
-								? 'Single-specimen record — no prior cases recorded for this patient.'
-								: `${patientCases.length} cases ordered newest first`}
-						</Typography>
+						<Typography style="small" tone="muted">{header.timelineNote}</Typography>
 					</div>
 				</header>
-
 				<div class="timeline-list">
-					{#each patientCases as item (item.id)}
-						<article class="case-card">
-							<TissueImage src={item.image} alt={`Slide thumbnail for ${item.id}`} size="lg" />
+					{#each timeline as item (item.id)}
+						<article class="case-card" data-case-id={item.id} data-status={item.status}>
+							{#if item.thumbnailUrl}
+								<TissueImage
+									src={item.thumbnailUrl}
+									alt={`Slide thumbnail for ${item.id}`}
+									size="lg"
+								/>
+							{:else}
+								<div class="thumb-fallback">
+									<Typography style="small" tone="muted">No slide thumbnail</Typography>
+								</div>
+							{/if}
 							<div class="case-body">
 								<div class="case-top">
 									<div>
 										<Typography as="h3" style="subsection">{item.id}</Typography>
 										<Typography style="small" tone="secondary">
-											{item.specimenLabel} · {item.specialty} · {item.ageSex} · {item.slides}
-											{item.slides === 1 ? 'slide' : 'slides'} · {item.accessioned}
+											{item.specimenLabel} · {item.specialtyLabel} · {item.ageAtAccession} ·
+											{item.slideLabel} · {item.accessioned}
 										</Typography>
 									</div>
 									<div class="badges">
-										<Badge tone={item.status === 'Open' ? 'warning' : 'success'}>
-											{item.status}
+										<Badge tone={item.status === 'open' ? 'warning' : 'success'}>
+											{item.statusLabel}
 										</Badge>
-										{#if item.status === 'Signed out'}
+										{#if item.status === 'signed_out' && item.icd10}
 											<Badge tone="neutral">{item.icd10}</Badge>
 										{/if}
 									</div>
 								</div>
 
-								{#if item.status === 'Signed out'}
+								{#if item.status === 'signed_out' && item.conclusion}
 									<Typography>{item.conclusion}</Typography>
-								{:else}
+								{:else if item.status === 'open'}
 									<div class="open-notice">
 										<Icon name="warning" size="sm" />
 										<Typography style="small" tone="secondary">
-											Open case — report and diagnosis codes withheld until sign-out. Open in
-											workspace to consult the agent across prior history.
+											Not yet reported. Report text and diagnosis codes stay hidden until sign-out.
 										</Typography>
 									</div>
 								{/if}
 
 								<div class="case-footer">
 									<div class="author">
-										<Avatar name={item.pathologist} size="sm" />
-										<Typography style="small">
-											{item.status === 'Open' ? 'Assigned to' : 'Reported by'}
-											{item.pathologist}
-										</Typography>
-										<Badge tone="synthetic">Synthetic</Badge>
+										<Avatar name={item.pathologistName} size="sm" />
+										<Typography style="small">{item.pathologistRole}</Typography>
+										<Button href={item.pathologistHref} variant="ghost" size="sm">
+											{item.pathologistName}
+										</Button>
+										{#if item.pathologistSynthetic}
+											<Badge tone="synthetic">Synthetic</Badge>
+										{/if}
 									</div>
 									<div class="actions">
-										<Button variant="secondary" size="sm" onclick={() => openPeek(item)}>
-											Peek
-										</Button>
-										{#if item.status === 'Open' && signedOutCases.length > 0}
-											<Button
-												href={`/cases/${item.id}?panel=consult`}
-												variant="secondary"
-												size="sm"
-												icon="spark"
-											>
+										<Button variant="secondary" size="sm" onclick={() => peek(item.id)}>Peek</Button
+										>
+										{#if item.consultHref}
+											<Button href={item.consultHref} variant="secondary" size="sm" icon="spark">
 												Consult with history
 											</Button>
 										{/if}
-										<Button
-											href={`/cases/${item.id}?panel=report`}
-											variant="primary"
-											size="sm"
-											icon="external"
-										>
+										<Button href={item.openHref} variant="primary" size="sm" icon="external">
 											Open case
 										</Button>
 									</div>
@@ -327,44 +540,6 @@
 	{/if}
 </div>
 
-<Dialog open={peekOpen} title={`Case peek · ${peekCase.id}`} onclose={() => (peekOpen = false)}>
-	<div class="peek">
-		<div class="peek-slide">
-			<TissueImage src={peekCase.image} alt={`Slide for ${peekCase.id}`} size="viewer" />
-		</div>
-		<div class="peek-report">
-			<div>
-				<Typography style="eyebrow" tone="accent">
-					{peekCase.status === 'Signed out' ? 'Signed report' : 'Open case'}
-				</Typography>
-				<Typography as="h3" style="section">{peekCase.id}</Typography>
-				<Typography style="small" tone="secondary">
-					{peekCase.specimenLabel} · {peekCase.pathologist}
-				</Typography>
-			</div>
-			{#if peekCase.status === 'Signed out'}
-				<div class="peek-section">
-					<Typography style="eyebrow" tone="muted">Conclusion</Typography>
-					<Typography>{peekCase.conclusion}</Typography>
-				</div>
-				<div class="peek-section">
-					<Typography style="eyebrow" tone="muted">Report excerpt</Typography>
-					<Typography>{passageFor(peekCase.id)}</Typography>
-				</div>
-			{:else}
-				<StateMessage
-					tone="warning"
-					title="Not yet reported"
-					description="Only submitted clinical history is visible before sign-out."
-				/>
-			{/if}
-			<Button href={`/cases/${peekCase.id}?panel=report`} variant="primary" icon="external">
-				Open full case
-			</Button>
-		</div>
-	</div>
-</Dialog>
-
 <style>
 	.patient-page {
 		display: grid;
@@ -376,10 +551,16 @@
 	.badges,
 	.author,
 	.actions,
-	.patch-strip {
+	.patch-strip,
+	.missing-actions {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
+		flex-wrap: wrap;
+	}
+	.missing-actions {
+		justify-content: center;
+		padding: 0 var(--space-6) var(--space-6);
 	}
 	.summary-grid {
 		display: grid;
@@ -408,7 +589,7 @@
 	}
 	.search-bar {
 		display: grid;
-		grid-template-columns: 1fr auto;
+		grid-template-columns: 1fr auto auto;
 		gap: var(--space-3);
 	}
 	.timeline-surface,
@@ -439,6 +620,7 @@
 	.case-body {
 		display: grid;
 		gap: var(--space-3);
+		min-width: 0;
 	}
 	.case-top,
 	.case-footer {
@@ -459,6 +641,12 @@
 		border-radius: 0 var(--radius-md) var(--radius-md) 0;
 		background: var(--color-surface-raised);
 	}
+	.passage :global(mark) {
+		background: var(--color-action-soft);
+		color: inherit;
+		padding: 0 0.12em;
+		border-radius: 0.15em;
+	}
 	.open-notice {
 		display: flex;
 		align-items: center;
@@ -467,39 +655,44 @@
 		border-radius: var(--radius-md);
 		background: var(--color-warning-soft);
 	}
+	.thumb-button {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+		border-radius: var(--radius-sm);
+	}
+	.thumb-button:focus-visible {
+		outline: 2px solid var(--color-action);
+		outline-offset: 2px;
+	}
+	.thumb-fallback {
+		display: grid;
+		place-items: center;
+		width: var(--thumb-lg);
+		height: var(--thumb-lg);
+		padding: var(--space-2);
+		border-radius: var(--radius-sm);
+		background: var(--color-image-placeholder);
+		text-align: center;
+	}
 	.loading-wrap {
 		display: grid;
 		gap: var(--space-4);
 		padding: var(--space-6);
 	}
-	.peek {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.85fr);
-		min-height: 28rem;
-	}
-	.peek-slide {
-		background: var(--color-viewer);
-	}
-	.peek-report {
-		display: grid;
-		align-content: start;
-		gap: var(--space-5);
-		padding: var(--space-6);
-	}
-	.peek-section {
-		display: grid;
-		gap: var(--space-1);
-	}
 	@media (max-width: 760px) {
 		.summary-grid,
-		.case-card,
-		.peek {
+		.case-card {
 			grid-template-columns: 1fr;
 		}
 		.search-head,
 		.case-top,
-		.case-footer {
+		.case-footer,
+		.search-bar {
+			grid-template-columns: 1fr;
 			flex-direction: column;
+			align-items: stretch;
 		}
 	}
 </style>
