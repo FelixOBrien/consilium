@@ -17,6 +17,7 @@ def test_help_exits_cleanly(capsys: pytest.CaptureFixture[str]) -> None:
     assert "serve" in output
     assert "pipeline" in output
     assert "db" in output
+    assert "preflight" in output
     assert "not for clinical use" in output
 
 

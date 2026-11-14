@@ -7,7 +7,7 @@ import uvicorn
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entrypoint. `serve` runs the API. `pipeline` runs offline ingestion."""
+    """CLI entrypoint. `serve` runs the API. `preflight` checks a demo laptop."""
     args_list = list(sys.argv[1:] if argv is None else argv)
     if args_list and args_list[0] == "pipeline":
         from consilium.pipeline.__main__ import main as pipeline_main  # pragma: allowlist secret
@@ -55,6 +55,37 @@ def main(argv: list[str] | None = None) -> int:
         help="Load idempotent synthetic fixture data (roster, cases, slides, reports)",
     )
 
+    preflight = subcommands.add_parser(
+        "preflight",
+        help="Check that this laptop is ready to demo, and warm the demo path",
+    )
+    preflight.add_argument(
+        "--case",
+        action="append",
+        default=None,
+        metavar="ID",
+        help="Case id to check. Repeat for more than one case",
+    )
+    preflight.add_argument(
+        "--api",
+        default=None,
+        metavar="URL",
+        help="Base URL of a running API. Runs live warm-up checks against it",
+    )
+    preflight.add_argument(
+        "--warm",
+        action="store_true",
+        help=(
+            "With STORAGE_BACKEND=uc_volume, fetch slides and thumbnail packs "
+            "into the local cache"
+        ),
+    )
+    preflight.add_argument(
+        "--ping-llm",
+        action="store_true",
+        help="Make one 5-token call to the configured LLM provider. Off by default",
+    )
+
     args = parser.parse_args(argv)
     if args.command == "serve":
         uvicorn.run(
@@ -68,5 +99,14 @@ def main(argv: list[str] | None = None) -> int:
         from consilium.db.migrate import run_db_command  # pragma: allowlist secret
 
         return run_db_command(args)
+    if args.command == "preflight":
+        from consilium.preflight import run_preflight  # pragma: allowlist secret
+
+        return run_preflight(
+            case_ids=list(args.case or []),
+            api_base=args.api,
+            warm=bool(args.warm),
+            ping_llm=bool(args.ping_llm),
+        )
     parser.print_help()
     return 0

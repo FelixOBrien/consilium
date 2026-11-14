@@ -61,3 +61,23 @@ uv run python -m consilium.pipeline export <!-- pragma: allowlist secret -->
 `manifest` is stage 1. It writes `data/cohort/cohort.csv` and `data/source/gdc_cases.parquet`. `download` streams each slide from the GDC (`GET /data/{gdc_file_id}`) to `data/slides/{slide_id}.svs`, checks the manifest size and the GDC MD5, and writes `data/trident/download_report.json`. `extract` reads level-0 dimensions, magnification, and microns-per-pixel from each SVS header into `data/trident/slide_headers.parquet`, then runs TRIDENT tissue segmentation, 512 px patching at 20x with no overlap, and `conch_v15` features into `data/trident/`. `project` multiplies those features by CONCH-Z `visual.proj_contrast` and L2-normalises them. `thumbs` writes `data/thumbs/{slide_id}.pack`. `export` writes `data/export/slide.parquet`, `patch.parquet`, and `concept.parquet`. `verify-alignment` saves the top thumbnails for two prompts on one slide. Those paths are git-ignored. A second run skips slides whose outputs already check out. The commands print seconds per slide and a projected time for the 200-slide demo tier.
 
 TRIDENT itself is installed from GitHub on the GPU machine (`uv pip install -e /path/to/TRIDENT`). The PyPI package named `trident` is unrelated. `conch_v15` weights need `HF_TOKEN`.
+
+## Before the demo
+
+Research prototype. Not for clinical use. From `python/`, with Postgres migrated and the fixture data seeded, check the laptop before presenting:
+
+```bash
+uv run consilium preflight --case breast-FX-B042C <!-- pragma: allowlist secret -->
+```
+
+That runs the static checks only: non-secret settings, migrations, row counts, the case and its slide files, and both text encoders. `ANTHROPIC_API_KEY`, `HF_TOKEN` and `DATABRICKS_TOKEN` are reported as `set` or `not set`. The database URL is printed without userinfo. A missing index migration is a warning. A zero row count, a missing schema migration, or a slide that does not open is a failure. The process exits non-zero only when a check fails.
+
+With the API already running (`uv run consilium serve` in another shell), warm the server process as well. The server loads its encoders lazily, so this is the warm-up the demo path actually needs: <!-- pragma: allowlist secret -->
+
+```bash
+uv run consilium preflight --api http://127.0.0.1:8000 --case breast-FX-B042C <!-- pragma: allowlist secret -->
+```
+
+The live checks call `GET /api/health`, the case, each slide's Deep Zoom descriptor, thumbnail and the `0_0` tile at the lowest pyramid levels, then one `POST /api/slides/{id}/heatmap` with `{"text": "glandular"}` and one `POST /api/search/reports` with `{"text": "adenocarcinoma"}`. Slide ids come from the case response. If that route is still the placeholder store (the seeded case is HTTP 404 and the placeholder case answers), the case check is a warning and the warm-up uses the database slide ids. If report search is still a stub (HTTP 501 or a stub payload), that check is a warning.
+
+`--warm` fetches each slide and thumbnail pack into the local cache when `STORAGE_BACKEND=uc_volume`. `--ping-llm` makes one 5-token call through the configured provider. Without that flag the command does not call a model. The command does not write to Postgres or to the slide store, apart from filling that cache.
