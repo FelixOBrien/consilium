@@ -18,6 +18,7 @@ One square tile of tissue from a slide, with the vector that represents what it 
 | `id` | `bigint` PK, identity | no | |
 | `slide_id` | `text` FK | no | |
 | `case_id` | `text` FK | no | Copied from the slide so results group by case without a join. |
+| `patient_id` | `text` FK | no | Copied from the case so patient-scoped tissue search filters inside the vector query (F-12.4). |
 | `specialty` | `text` | no | Copied from the case so the specialty filter applies inside the vector search (F-05.7). |
 | `x` | `integer` | no | Left edge, level-0 pixels. |
 | `y` | `integer` | no | Top edge, level-0 pixels. |
@@ -35,14 +36,15 @@ One square tile of tissue from a slide, with the vector that represents what it 
 - HNSW on `embedding` with `halfvec_cosine_ops`, partial on `in_corpus` — corpus search (Q1, Q2, Q4).
 - `(slide_id, x, y)` unique — hit-testing a click (F-03.6), the region query (Q2), and heatmaps, which scan one slide exactly.
 - `(case_id)` — grouping and exclusion of the context case.
+- `(patient_id)` — patient-scoped tissue search across a patient's signed-out cases (F-12.4).
 
 With `SEARCH_BACKEND=lakebase` the HNSW index is replaced by a `lakebase_ann` index on the same column.
 
 ## Rules
-1. Patches are 512 px at 20x with no overlap, on tissue only. Positions are multiples of `size` offset from the slide's patching origin.
+1. Patches are 512 px at 20x effective magnification with no overlap, on tissue only (`size` in level-0 pixels equals `slide.patch_size`: 512 on a 20x slide, 1024 on a 40x slide). Positions are multiples of `size` offset from the slide's patching origin.
 2. `embedding` is stored after CONCH-Z projection and normalisation, never raw ([architecture D2](../architecture.md#decisions)).
 3. `in_corpus` is true exactly when the case is signed out and not held out.
-4. `specialty` and `case_id` always equal the values on the owning slide's case.
+4. `patient_id`, `specialty` and `case_id` always equal the values on the owning slide's case.
 5. Built after load: rows first, vector index second (F-09.8).
 
 ## Source

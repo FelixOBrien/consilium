@@ -23,7 +23,7 @@ The data operator queues one new slide and watches it move through the pipeline 
 
 | Region | Contains |
 | --- | --- |
-| New job form | HistAI dataset (chosen from the known subsets) and slide path within it. Submit. |
+| New job form | TCGA project (chosen from the cohort projects) and GDC slide file name or file ID. Submit. |
 | Corpus summary | Counts of cases, slides, patches and report chunks currently loaded. |
 | Job list | Recent jobs, newest first: dataset and path, who queued it, status, current stage, started and finished times. |
 | Job detail | For the selected job: each stage in order with its state, start and finish times and detail line; counts of patches and chunks once known; the error when failed. |

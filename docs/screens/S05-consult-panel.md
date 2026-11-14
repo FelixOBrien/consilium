@@ -4,7 +4,7 @@ title: Consult panel
 route: panel in S-02 (panel=consult)
 status: planned
 priority: P0
-features: [F-07]
+features: [F-07, F-12]
 stories: [US-07.1, US-07.2, US-07.3, US-07.4]
 figma: ""
 linear: [SKO-279]
@@ -24,7 +24,7 @@ The pathologist asks the agent about the open case, watches it search, and gets 
 
 | Region | Contains |
 | --- | --- |
-| Starter questions | Shown when the thread is empty: Who should I consult on this case? · Summarise similar cases · What features distinguished similar cases? |
+| Starter questions | Shown when the thread is empty: Who should I consult on this case? · Summarise this patient's previous cases · Summarise similar cases · What features distinguished similar cases? |
 | Conversation | Messages in order. User messages show any attachment. Assistant messages show steps, answer text with inline citations, and a ranking card when present. |
 | Steps | Within an assistant message: one line per tool call, showing what was searched and a one-line result, updating live while running (F-07.10). Collapsible once the answer is complete. |
 | Ranking card | Within an assistant message: pathologists in order, each with specialty, the number of relevant cases, and those cases as citations. Marked synthetic (F-07.4, F-07.14). |

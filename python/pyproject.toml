@@ -12,3 +12,12 @@ dependencies = [
     "torchvision>=0.23.0",
     "transformers>=4.12.2",
 ]
+
+[dependency-groups]
+dev = [
+    "black",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
