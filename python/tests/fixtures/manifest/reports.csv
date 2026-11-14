@@ -1,0 +1,24 @@
+patient_filename,text
+TCGA-AA-0001.short,Short.
+TCGA-AA-0001.11111111-2222-3333-4444-555555555555,Clinical History: FIXTURE-HISTORY-AA-0001 invented screening note. Gross Description: Invented gross for the fixture. Final Diagnosis: Invented fixture label.
+TCGA-AA-0002.aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee,Invented narrative without headings for this fixture case.
+TCGA-BB-0001.11111111-2222-3333-4444-555555555555,Clinical History: FIXTURE-HISTORY-BB-0001 invented screening note. Gross Description: Invented gross for the fixture. Final Diagnosis: Invented fixture label.
+TCGA-BB-0002.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-CC-0001.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-CC-0002.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-DD-0001.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-DD-0002.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-EE-0001.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-EE-0002.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-FF-0001.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0003.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0004.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0006.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0007.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0009.11111111-2222-3333-4444-555555555555,   
+TCGA-AA-0010.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0011.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AA-0012.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+TCGA-AC-0001.11111111-2222-3333-4444-555555555555,Invented narrative without headings for this fixture case.
+NOBARCODE,Invented corrupt row
+TCGA-AA-00,too short to be a patient barcode
