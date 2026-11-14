@@ -1,10 +1,12 @@
 <script lang="ts">
 	let {
 		items,
-		value = $bindable()
+		value = $bindable(),
+		onchange
 	}: {
-		items: { label: string; value: string; count?: number }[];
+		items: { label: string; value: string; count?: number | string }[];
 		value: string;
+		onchange?: (value: string) => void;
 	} = $props();
 </script>
 
@@ -14,7 +16,10 @@
 			class:active={item.value === value}
 			role="tab"
 			aria-selected={item.value === value}
-			onclick={() => (value = item.value)}
+			onclick={() => {
+				value = item.value;
+				onchange?.(item.value);
+			}}
 		>
 			{item.label}
 			{#if item.count !== undefined}<span>{item.count}</span>{/if}

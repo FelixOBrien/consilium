@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.40",
     "fastapi>=0.115",
+    "numpy>=2.4.6",
     "pgvector>=0.3",
     "psycopg[binary,pool]>=3.2",
     "pyarrow>=26.0.1",
@@ -29,17 +30,23 @@ packages = ["src/consilium"] # pragma: allowlist secret
 # `pipeline` is the GPU stack (torch, timm, transformers). Mahmood Lab TRIDENT
 # is not on PyPI — the PyPI project "trident" is an unrelated astronomy package —
 # so it is installed from GitHub on the GPU machine, not locked here.
-# `tiles` is OpenSlide for the tile server and for reading SVS headers.
+# `tiles` is OpenSlide for the tile server, SVS headers, and thumbnail packs.
 # It stays optional so API and Databricks App startup do not download it.
-# `h5py` is in both `dev` and `pipeline`: CI validates TRIDENT H5 files, and
-# `uv sync --group pipeline` on the GPU box can validate them too.
+# `dev` also installs OpenSlide, Pillow, and tifffile so CI can build a
+# pyramidal TIFF and check thumbnail packs. `h5py` is in both `dev` and
+# `pipeline`: CI validates TRIDENT H5 files, and `uv sync --group pipeline`
+# on the GPU box can validate them too.
 
 [dependency-groups]
 dev = [
     "h5py>=3.11",
     "httpx>=0.27",
+    "openslide-bin>=4.0",
+    "openslide-python>=1.4",
+    "pillow>=13.0.0",
     "pytest>=8",
     "ruff>=0.8",
+    "tifffile>=2026.3.3",
 ]
 pipeline = [
     "h5py>=3.11",
@@ -52,6 +59,7 @@ pipeline = [
 tiles = [
     "openslide-bin>=4.0",
     "openslide-python>=1.4",
+    "pillow>=13.0.0",
 ]
 
 [tool.uv]

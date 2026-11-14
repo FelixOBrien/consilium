@@ -2,6 +2,9 @@
 	import type { Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { RESEARCH_NOTICE, SYNTHETIC_ROSTER_NOTICE } from '#lib/identity/copy.js';
+	import { identity } from '#lib/identity/identity.svelte.js';
+	import { specialtyLabel } from '#lib/worklist/query.js';
 	import Avatar from './Avatar.svelte';
 	import Badge from './Badge.svelte';
 	import Button from './Button.svelte';
@@ -13,7 +16,24 @@
 	let query = $state('');
 	let rosterOpen = $state(false);
 	const currentPath = $derived(page.url.pathname);
+	const acting = $derived(identity.me);
+	const actingName = $derived(acting?.name ?? 'Acting pathologist');
+
+	function toggleRoster() {
+		rosterOpen = !rosterOpen;
+	}
+
+	function choose(id: string) {
+		rosterOpen = false;
+		void identity.select(id);
+	}
+
+	function onKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') rosterOpen = false;
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="app-shell">
 	<header class="global-header">
@@ -46,32 +66,57 @@
 		</form>
 
 		<div class="identity">
-			<Button variant="ghost" size="sm" onclick={() => (rosterOpen = !rosterOpen)}>
-				<Avatar name="Dr A. Okafor" size="sm" />
+			<Button
+				variant="ghost"
+				size="sm"
+				ariaExpanded={rosterOpen}
+				ariaLabel={`Acting pathologist: ${actingName}. Roster is synthetic.`}
+				onclick={toggleRoster}
+			>
+				<Avatar name={actingName} size="sm" />
 				<span class="identity-copy">
-					<Typography as="span" style="label">Dr A. Okafor</Typography>
+					<Typography as="span" style="label">{actingName}</Typography>
 					<Typography as="span" style="small" tone="muted">Acting pathologist</Typography>
 				</span>
 				<Badge tone="synthetic">Synthetic</Badge>
 				<Icon name="chevron-down" size="sm" />
 			</Button>
 			{#if rosterOpen}
-				<div class="roster-popover">
+				<button
+					class="roster-backdrop"
+					type="button"
+					aria-label="Close roster"
+					onclick={() => (rosterOpen = false)}
+				></button>
+				<div class="roster-popover" role="listbox" aria-label="Synthetic pathologist roster">
 					<Typography style="eyebrow" tone="muted">Act as</Typography>
-					{#each ['Dr A. Okafor', 'Dr M. Laurent', 'Dr E. Mensah'] as name, index (name)}
-						<button class:active={index === 0} onclick={() => (rosterOpen = false)}>
-							<Avatar {name} size="sm" />
-							<span>
-								<Typography as="span" style="label">{name}</Typography>
-								<Typography as="span" style="small" tone="muted">
-									{index === 0 ? 'Dermatopathology' : index === 1 ? 'Skin · GI' : 'Skin · Breast'}
-								</Typography>
-							</span>
-						</button>
-					{/each}
-					<Typography style="small" tone="muted">
-						All identities and assignments are synthetic.
-					</Typography>
+					{#if identity.status === 'loading'}
+						<Typography style="small" tone="muted">Loading roster…</Typography>
+					{:else if identity.status === 'error'}
+						<Typography style="small" tone="secondary">{identity.error}</Typography>
+						<Button variant="secondary" size="sm" onclick={() => identity.retry()}>Retry</Button>
+					{:else}
+						{#each identity.roster as person (person.id)}
+							<button
+								class:active={person.id === acting?.id}
+								type="button"
+								role="option"
+								aria-selected={person.id === acting?.id}
+								onclick={() => choose(person.id)}
+							>
+								<Avatar name={person.name} size="sm" />
+								<span>
+									<Typography as="span" style="label">{person.name}</Typography>
+									<Typography as="span" style="small" tone="muted">
+										{specialtyLabel(person.primary_specialty)}
+										{#if person.is_synthetic}
+											· Synthetic{/if}
+									</Typography>
+								</span>
+							</button>
+						{/each}
+					{/if}
+					<Typography style="small" tone="muted">{SYNTHETIC_ROSTER_NOTICE}</Typography>
 				</div>
 			{/if}
 		</div>
@@ -79,10 +124,7 @@
 
 	<div class="research-notice">
 		<Icon name="warning" size="sm" />
-		<Typography as="span" style="small">
-			Research prototype — information retrieval only. Not a medical device and not for clinical
-			use.
-		</Typography>
+		<Typography as="span" style="small">{RESEARCH_NOTICE}</Typography>
 	</div>
 
 	<main>{@render children()}</main>
@@ -175,8 +217,17 @@
 	.identity :global(.button) {
 		padding-left: var(--space-2);
 	}
+	.roster-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		border: 0;
+		background: transparent;
+		cursor: default;
+	}
 	.roster-popover {
 		position: absolute;
+		z-index: 2;
 		top: calc(100% + var(--space-3));
 		right: 0;
 		display: grid;

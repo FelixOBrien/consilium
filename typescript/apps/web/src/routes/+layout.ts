@@ -1,6 +1,6 @@
-import { api } from '#lib/api/client.js';
-
-export const prerender = true;
-
-/** Generated from the OpenAPI contract. Do not hand-write response types. */
-export { api };
+/**
+ * Client-rendered SPA. Case and patient ids come from the API at runtime,
+ * so they cannot be enumerated at build time.
+ */
+export const ssr = false;
+export const prerender = false;

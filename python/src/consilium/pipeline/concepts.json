@@ -1,0 +1,162 @@
+[
+  {
+    "id": "tumour-necrosis",
+    "label": "Tumour necrosis",
+    "prompt": "an H&E image of tumour necrosis",
+    "negative_prompt": "an H&E image of viable tissue",
+    "specialty": null,
+    "ordinal": 1
+  },
+  {
+    "id": "mitotic-figures",
+    "label": "Mitotic figures",
+    "prompt": "an H&E image of mitotic figures",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 2
+  },
+  {
+    "id": "lymphocytic-infiltrate",
+    "label": "Lymphocytic infiltrate",
+    "prompt": "an H&E image of lymphocytic infiltrate",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 3
+  },
+  {
+    "id": "fibrosis",
+    "label": "Fibrosis",
+    "prompt": "an H&E image of fibrosis",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 4
+  },
+  {
+    "id": "mucin",
+    "label": "Mucin",
+    "prompt": "an H&E image of extracellular mucin",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 5
+  },
+  {
+    "id": "glandular-differentiation",
+    "label": "Glandular differentiation",
+    "prompt": "an H&E image of glandular differentiation",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 6
+  },
+  {
+    "id": "keratinisation",
+    "label": "Keratinisation",
+    "prompt": "an H&E image of keratinisation",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 7
+  },
+  {
+    "id": "haemorrhage",
+    "label": "Haemorrhage",
+    "prompt": "an H&E image of haemorrhage",
+    "negative_prompt": null,
+    "specialty": null,
+    "ordinal": 8
+  },
+  {
+    "id": "breast-ducts",
+    "label": "Breast ducts",
+    "prompt": "an H&E image of breast ducts",
+    "negative_prompt": null,
+    "specialty": "breast",
+    "ordinal": 9
+  },
+  {
+    "id": "breast-adipose",
+    "label": "Breast adipose",
+    "prompt": "an H&E image of adipose tissue",
+    "negative_prompt": "an H&E image of tumour cells",
+    "specialty": "breast",
+    "ordinal": 10
+  },
+  {
+    "id": "thorax-alveoli",
+    "label": "Alveolar spaces",
+    "prompt": "an H&E image of alveolar spaces",
+    "negative_prompt": null,
+    "specialty": "thorax",
+    "ordinal": 11
+  },
+  {
+    "id": "thorax-glands",
+    "label": "Lung glands",
+    "prompt": "an H&E image of glandular structures in lung tissue",
+    "negative_prompt": null,
+    "specialty": "thorax",
+    "ordinal": 12
+  },
+  {
+    "id": "colorectal-mucosa",
+    "label": "Colorectal mucosa",
+    "prompt": "an H&E image of colorectal mucosa",
+    "negative_prompt": null,
+    "specialty": "colorectal",
+    "ordinal": 13
+  },
+  {
+    "id": "colorectal-desmoplasia",
+    "label": "Desmoplastic stroma",
+    "prompt": "an H&E image of desmoplastic stroma",
+    "negative_prompt": null,
+    "specialty": "colorectal",
+    "ordinal": 14
+  },
+  {
+    "id": "gastrointestinal-mucosa",
+    "label": "Gastric mucosa",
+    "prompt": "an H&E image of gastric mucosa",
+    "negative_prompt": null,
+    "specialty": "gastrointestinal",
+    "ordinal": 15
+  },
+  {
+    "id": "gastrointestinal-signet",
+    "label": "Signet-ring cells",
+    "prompt": "an H&E image of signet-ring cells",
+    "negative_prompt": null,
+    "specialty": "gastrointestinal",
+    "ordinal": 16
+  },
+  {
+    "id": "skin-epidermis",
+    "label": "Epidermis",
+    "prompt": "an H&E image of epidermis",
+    "negative_prompt": null,
+    "specialty": "skin",
+    "ordinal": 17
+  },
+  {
+    "id": "skin-melanin",
+    "label": "Melanin pigment",
+    "prompt": "an H&E image of melanin pigment",
+    "negative_prompt": null,
+    "specialty": "skin",
+    "ordinal": 18
+  },
+  {
+    "id": "hematologic-lymphoid",
+    "label": "Lymphoid sheets",
+    "prompt": "an H&E image of sheets of lymphoid cells",
+    "negative_prompt": null,
+    "specialty": "hematologic",
+    "ordinal": 19
+  },
+  {
+    "id": "hematologic-follicle",
+    "label": "Lymphoid follicle",
+    "prompt": "an H&E image of a lymphoid follicle",
+    "negative_prompt": null,
+    "specialty": "hematologic",
+    "ordinal": 20
+  }
+]
