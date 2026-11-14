@@ -53,6 +53,7 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Library | [h5py](https://www.h5py.org/) | Read and validate TRIDENT coordinate and feature files | BSD-3-Clause |
 | Library | [Pillow](https://python-pillow.org/) | JPEG thumbnails in fixture packs | MIT-CMU |
 | Library | [tifffile](https://github.com/cgohlke/tifffile) | Synthetic pyramidal TIFF fixture slides | BSD-3-Clause |
+| Library | [OpenSeadragon](https://openseadragon.github.io/) | Deep zoom slide viewer | BSD-3-Clause |
 | Platform | Databricks Free Edition (Unity Catalog, Delta, Lakebase, Apps) | Lakehouse, vector search, app hosting | — |
 
 Pathologist identities, sign-out dates, case assignments and multi-donor longitudinal patient links are synthetic: TCGA reports are de-identified and do not identify report authors or longitudinal clinical accessions.

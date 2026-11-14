@@ -2,7 +2,7 @@
 id: S-02
 title: Case workspace and viewer
 route: /cases/[caseId]
-status: planned
+status: in-progress
 priority: P0
 features: [F-03, F-06, F-12]
 stories: [US-03.1, US-03.2, US-03.3, US-03.4, US-06.1, US-06.2, US-06.3]

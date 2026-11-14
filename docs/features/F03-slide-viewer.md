@@ -1,7 +1,7 @@
 ---
 id: F-03
 title: Slide viewer
-status: in-progress
+status: done
 priority: P0
 stories: [US-03.1, US-03.2, US-03.3, US-03.4]
 models: [case, slide, patch]
