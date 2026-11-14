@@ -26,10 +26,15 @@ def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert "serve" in output
 
 
-def test_pipeline_help_does_not_claim_to_run(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["pipeline"]) == 0
-    output = capsys.readouterr().out
-    assert "does not download" in output
+def test_pipeline_help_lists_load_and_run(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        main(["pipeline", "--help"])
+    assert exc.value.code == 0
+    output = " ".join(capsys.readouterr().out.split())
+    assert "load" in output
+    assert "run" in output
+    assert "reports" in output
+    assert "not for clinical use" in output
 
 
 def test_unknown_command() -> None:

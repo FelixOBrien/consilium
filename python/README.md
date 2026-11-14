@@ -43,8 +43,11 @@ uv sync --group tiles      # OpenSlide, for SVS headers and the tile server
 uv run python -m consilium.pipeline manifest --tier smoke --max-slide-gb 1.0 --seed 0 <!-- pragma: allowlist secret -->
 uv run python -m consilium.pipeline download --workers 4 <!-- pragma: allowlist secret -->
 uv run python -m consilium.pipeline extract --gpu 0 <!-- pragma: allowlist secret -->
+uv run python -m consilium.pipeline project <!-- pragma: allowlist secret -->
+uv run python -m consilium.pipeline thumbs <!-- pragma: allowlist secret -->
+uv run python -m consilium.pipeline export <!-- pragma: allowlist secret -->
 ```
 
-`manifest` is stage 1. It writes `data/cohort/cohort.csv` and `data/source/gdc_cases.parquet`. `download` streams each slide from the GDC (`GET /data/{gdc_file_id}`) to `data/slides/{slide_id}.svs`, checks the manifest size and the GDC MD5, and writes `data/trident/download_report.json`. `extract` reads level-0 dimensions, magnification, and microns-per-pixel from each SVS header into `data/trident/slide_headers.parquet`, then runs TRIDENT tissue segmentation, 512 px patching at 20x with no overlap, and `conch_v15` features into `data/trident/`. Those paths are git-ignored. A second run skips slides whose outputs already check out. Both commands print seconds per slide and a projected time for the 200-slide demo tier.
+`manifest` is stage 1. It writes `data/cohort/cohort.csv` and `data/source/gdc_cases.parquet`. `download` streams each slide from the GDC (`GET /data/{gdc_file_id}`) to `data/slides/{slide_id}.svs`, checks the manifest size and the GDC MD5, and writes `data/trident/download_report.json`. `extract` reads level-0 dimensions, magnification, and microns-per-pixel from each SVS header into `data/trident/slide_headers.parquet`, then runs TRIDENT tissue segmentation, 512 px patching at 20x with no overlap, and `conch_v15` features into `data/trident/`. `project` multiplies those features by CONCH-Z `visual.proj_contrast` and L2-normalises them. `thumbs` writes `data/thumbs/{slide_id}.pack`. `export` writes `data/export/slide.parquet`, `patch.parquet`, and `concept.parquet`. `verify-alignment` saves the top thumbnails for two prompts on one slide. Those paths are git-ignored. A second run skips slides whose outputs already check out. The commands print seconds per slide and a projected time for the 200-slide demo tier.
 
 TRIDENT itself is installed from GitHub on the GPU machine (`uv pip install -e /path/to/TRIDENT`). The PyPI package named `trident` is unrelated. `conch_v15` weights need `HF_TOKEN`.
