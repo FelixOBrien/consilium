@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - "python/**"
+      - "README.md"
       - ".github/workflows/python.yml"
   push:
     branches: [main]
     paths:
       - "python/**"
+      - "README.md"
       - ".github/workflows/python.yml"
 
 permissions:
