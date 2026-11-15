@@ -4,7 +4,7 @@ from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, SecretStr, field_serializer, field_validator
+from pydantic import Field, SecretStr, field_serializer, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_DATABASE_URL = "postgresql://localhost:5432/consilium"  # pragma: allowlist secret
@@ -57,6 +57,18 @@ def default_slide_cache_dir() -> Path:
     return default_storage_root() / "cache" / "slides"
 
 
+def default_web_build_dir() -> Path | None:
+    """SvelteKit build, when this checkout already has one.
+
+    A packaged Databricks App sets `WEB_BUILD_DIR` (for example `static_web`)
+    instead of relying on the monorepo layout.
+    """
+    candidate = repo_root() / "typescript" / "apps" / "web" / "build"
+    if (candidate / "index.html").is_file():
+        return candidate
+    return None
+
+
 def _env_files() -> tuple[str, ...]:
     candidates = (repo_root() / ".env", python_root() / ".env")
     return tuple(str(path) for path in candidates if path.is_file())
@@ -88,6 +100,8 @@ class Settings(BaseSettings):
     hf_token: SecretStr | None = Field(default=None, repr=False)
     databricks_host: str | None = None
     databricks_token: SecretStr | None = Field(default=None, repr=False)
+    # Volume path. With STORAGE_BACKEND=uc_volume and the local STORAGE_ROOT
+    # default, this path becomes the slide root.
     databricks_volume_root: str | None = None
     databricks_warehouse_id: str | None = None
     databricks_catalog: str | None = None
@@ -95,6 +109,7 @@ class Settings(BaseSettings):
     mlflow_tracing_enabled: bool = False
     mlflow_experiment_name: str = DEFAULT_MLFLOW_EXPERIMENT
     mlflow_tracking_uri: str | None = None
+    web_build_dir: Path | None = Field(default_factory=default_web_build_dir)
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -189,6 +204,24 @@ class Settings(BaseSettings):
         if _blank(value):
             return None
         return str(value).strip().rstrip("/")
+
+    @field_validator("web_build_dir", mode="before")
+    @classmethod
+    def blank_web_build_dir(cls, value: object) -> object:
+        if _blank(value):
+            return default_web_build_dir()
+        return value
+
+    @model_validator(mode="after")
+    def apply_volume_root(self) -> Settings:
+        volume = self.databricks_volume_root
+        if (
+            volume is not None
+            and self.storage_backend is StorageBackend.UC_VOLUME
+            and self.storage_root == default_storage_root()
+        ):
+            self.storage_root = Path(volume)
+        return self
 
     @field_serializer(
         "anthropic_api_key",

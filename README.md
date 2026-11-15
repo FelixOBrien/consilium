@@ -56,3 +56,39 @@ Python setup is in [python/README.md](python/README.md). Web setup is added as t
 | Platform | Databricks Free Edition (Unity Catalog, Delta, Lakebase, Apps) | Lakehouse, vector search, app hosting | — |
 
 Pathologist identities, sign-out dates, case assignments and multi-donor longitudinal patient links are synthetic: TCGA reports are de-identified and do not identify report authors or longitudinal clinical accessions.
+
+## Databricks App
+
+The laptop run is the demo path. The App is the deployed copy, and it is not public. Apps stop 24 hours after start or redeploy, so restart on Sunday morning before judging.
+
+One command builds the static client, stages a git-ignored bundle (`build/databricks-app/`, never commit it), syncs that bundle, and deploys. It refuses to run until `CONSILIUM_DEPLOY_DATABRICKS=1` is set. Do that only after the lakehouse load (SKO-280) has put real cohort data in the Volume and Lakebase. <!-- pragma: allowlist secret -->
+
+```bash
+export DATABRICKS_HOST="https://<workspace-host>"   # no trailing slash  # pragma: allowlist secret
+export DATABRICKS_TOKEN="<pat>"
+export DATABRICKS_APP_SOURCE="/Workspace/Users/<you>/consilium-app"  # pragma: allowlist secret
+export DATABRICKS_APP_NAME="consilium"              # optional  # pragma: allowlist secret
+CONSILIUM_DEPLOY_DATABRICKS=1 scripts/deploy_databricks_app.sh  # pragma: allowlist secret
+```
+
+`scripts/stage_databricks_app.sh` is the build half on its own: `bun install --frozen-lockfile`, `bun run --filter web build`, then the Python package, `uv.lock`, `app.yaml`, and `static_web/`. The staged `pyproject.toml` installs the `pipeline` group so the CPU text encoders are present. There is no `requirements.txt`, so the App installs with `uv sync`.
+
+Attach these resource keys on the App before the first deploy. `python/databricks/app.yaml` references them with `valueFrom` and does not contain secret values.
+
+| Key | Kind | Becomes |
+| --- | --- | --- |
+| `volume` | Unity Catalog volume | `STORAGE_ROOT` and `DATABRICKS_VOLUME_ROOT` (`/Volumes/.../raw`) |
+| `postgres` | Lakebase database | `LAKEBASE_ENDPOINT` (endpoint path, not a libpq URL) |
+| `database-url` | secret | `DATABASE_URL`, with `sslmode=require` |
+| `anthropic-api-key` | secret | `ANTHROPIC_API_KEY` |
+| `hf-token` | secret | `HF_TOKEN` |
+
+The process listens on `0.0.0.0` and `${DATABRICKS_APP_PORT:-8000}`. `LLM_PROVIDER=anthropic`. `STORAGE_BACKEND=uc_volume`. `SEARCH_BACKEND=pgvector`. `SLIDE_CACHE_DIR=/tmp/consilium-slides` and `SLIDE_CACHE_MAX_GB=4` cap cached slides on the App's ephemeral disk, beside the Hugging Face files in `/tmp/consilium-hf`. The default App size is 2 vCPU and 6 GB RAM. Text encoders load on the first encode, so `/api/health` stays light. A local run of `create_app` with `MockTextEncoder` peaked at 87 MiB RSS, and the static client is 663,677 bytes. The live CONCH-Z text tower and bge-small are outside that measurement; they load into the 6 GB App on first use. <!-- pragma: allowlist secret -->
+
+Sunday morning, before judging:
+
+```bash
+databricks apps start consilium  # pragma: allowlist secret
+```
+
+`python/databricks/app.yaml` is the committed runtime config. The step-by-step morning check is the deploy runbook kept with the project notes.

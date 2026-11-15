@@ -24,6 +24,7 @@ from consilium.api.routers import (  # pragma: allowlist secret
     slides,
 )
 from consilium.api.schemas.common import ErrorEnvelope  # pragma: allowlist secret
+from consilium.api.spa import install_spa  # pragma: allowlist secret
 from consilium.api.store import Store  # pragma: allowlist secret
 from consilium.config import Settings, get_settings  # pragma: allowlist secret
 from consilium.db.connection import connection_pool  # pragma: allowlist secret
@@ -91,6 +92,9 @@ def create_app(settings: Settings | None = None, *, use_stub_store: bool = False
     ):
         api.include_router(router)
     app.include_router(api)
+    # After every /api route. Unknown /api paths stay JSON 404s; other GET and
+    # HEAD paths can fall through to the static SvelteKit build.
+    install_spa(app, (settings if settings is not None else get_settings()).web_build_dir)
 
     def openapi() -> dict[str, Any]:
         if app.openapi_schema:

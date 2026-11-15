@@ -49,6 +49,8 @@ uv sync --group pipeline   # torch, transformers, and h5py: offline pipeline and
 
 `uv run consilium --help` lists the `serve` command. <!-- pragma: allowlist secret -->
 
+The Databricks App build is `scripts/stage_databricks_app.sh` and `scripts/deploy_databricks_app.sh` at the repo root. See the repository README. FastAPI serves `WEB_BUILD_DIR` when that directory contains `index.html`, and leaves `/` as a JSON 404 when it does not.
+
 ```bash
 uv run python -m consilium.pipeline manifest --tier smoke --max-slide-gb 1.0 --seed 0 <!-- pragma: allowlist secret -->
 uv run python -m consilium.pipeline download --workers 4 <!-- pragma: allowlist secret -->
