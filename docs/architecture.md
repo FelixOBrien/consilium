@@ -108,6 +108,9 @@ Environment variables, read through one settings module. `.env.example` lists th
 | `DATABRICKS_VOLUME_ROOT` | `/Volumes/...` | Unity Catalog Volume that receives parquet, thumbnail packs, and slides. |
 | `DATABRICKS_WAREHOUSE_ID` | warehouse id | Optional. Lets `consilium.pipeline reconcile` count Delta gold tables. | <!-- pragma: allowlist secret -->
 | `DATABRICKS_CATALOG`, `DATABRICKS_SCHEMA` | names | Optional Unity Catalog names for those gold counts. |
+| `MLFLOW_TRACING_ENABLED` | `true` \| `false` | Log each consult turn as an MLflow trace. Default `false`: the agent does not import MLflow and does not call Databricks. |
+| `MLFLOW_EXPERIMENT_NAME` | path | Experiment for those traces. Default `/Shared/consilium-consult`. | <!-- pragma: allowlist secret -->
+| `MLFLOW_TRACKING_URI` | `databricks` or a directory | Where traces go. Unset means `databricks`, using `DATABRICKS_HOST` and `DATABRICKS_TOKEN`. A local directory is the file store used in tests. Tracing stays off when the Databricks target is selected and either credential is missing. |
 
 ## Data layout
 

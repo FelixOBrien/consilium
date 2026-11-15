@@ -39,7 +39,7 @@ uv run python -m consilium.db seed <!-- pragma: allowlist secret -->
 
 `uv sync` installs OpenSlide (`openslide-python` and the `openslide-bin` wheel) with the API. Tile routes and the seed tests open slides with that wheel on Python 3.11 and 3.12; no apt package is required. `STORAGE_BACKEND=uc_volume` reads Unity Catalog Volume files through the Databricks SDK (`databricks-sdk`). `consilium.pipeline upload-volume` uses the same SDK to upload parquet, thumbnail packs, and slides. <!-- pragma: allowlist secret -->
 
-Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git.
+Copy the repo-root `.env.example` to `.env` to override local defaults. Do not put real secrets in git. `MLFLOW_TRACING_ENABLED` defaults off. Set it, with `DATABRICKS_HOST` and `DATABRICKS_TOKEN` or a local `MLFLOW_TRACKING_URI` directory, to log consult turns.
 
 ```bash
 uv sync --group pipeline   # torch, transformers, and h5py: offline pipeline and CPU text encoders

@@ -58,6 +58,7 @@ G2. The first consult request goes to the colleague with the most relevant exper
 13. Threads and messages are stored, including citations and the tool trace.
 14. Pathologist names shown in answers are marked synthetic in the UI.
 15. The pathologist can stop an answer while it streams; the partial answer is kept. They can also start a new thread for the case, which replaces the one shown.
+16. When `MLFLOW_TRACING_ENABLED` is true, each turn is one MLflow trace: a root span, one child span per model call, and one child span per tool call. The spans carry case, slide and patch ids, counts, durations and token totals. They do not carry report text, clinical history, patient demographics or credentials. A tracing failure does not stop the stream. With the setting off, the turn does not contact MLflow or Databricks.
 
 ## API
 - `POST /api/cases/{id}/consult/threads` — start or resume the thread for the acting pathologist. Body `new: true` forces a fresh thread.
