@@ -74,9 +74,9 @@ The pipeline itself is a command-line program in `consilium.pipeline`, one subco
 ## Acceptance
 - The smoke tier (10 slides) runs end to end on one machine and the cases appear in the worklist with working slides and search.
 - Re-running the pipeline on the same manifest does no repeated work and creates no duplicate rows.
-- The demo tier is loaded locally and in Lakebase, with row counts that match between parquet, Delta gold and Postgres.
+- The demo tier is loaded locally. Delta gold row counts match the full parquet. Lakebase holds the measured subset from `consilium.pipeline subset`, and its row counts match that subset. <!-- pragma: allowlist secret -->
 - A queued single-slide job moves through its stages and the slide becomes searchable without restarting the API.
 
 ## Open questions
 - A few TCGA `.svs` files have no resolution metadata (see [F-03](F03-slide-viewer.md)). Stage 4 records those slides and continues; it does not invent a microns-per-pixel value.
-- Lakebase Free Edition stores at most 512 MB ([context](../context.md#platform-databricks-free-edition)), which caps the tier loaded there. The manifest tiers are the subset that load can choose.
+- Lakebase Free Edition stores at most 512 MB ([context](../context.md#platform-databricks-free-edition)). The full demo tier does not fit. `consilium.pipeline subset --max-cases 45` writes the Lakebase subset described in [architecture](../architecture.md#lakebase-subset): every held-out case, earlier cases of those patients, every pathologist and concept, and a specialty-balanced sample that stops near 320 MiB. `SEARCH_BACKEND` stays `pgvector`. <!-- pragma: allowlist secret -->

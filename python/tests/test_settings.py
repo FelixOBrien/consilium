@@ -33,6 +33,10 @@ def test_local_defaults() -> None:
     assert settings.hf_token is None
     assert settings.databricks_host is None
     assert settings.databricks_token is None
+    assert settings.databricks_volume_root is None
+    assert settings.databricks_warehouse_id is None
+    assert settings.databricks_catalog is None
+    assert settings.databricks_schema is None
     assert (settings.storage_root.parent / "docs" / "architecture.md").is_file()
 
 
@@ -67,6 +71,7 @@ def test_reads_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.databricks_host == "https://example.cloud.databricks.com"
     assert settings.databricks_token is not None
     assert settings.databricks_token.get_secret_value() == "test-databricks-token"
+    assert settings.databricks_volume_root is None
 
 
 def test_blank_values_keep_defaults(tmp_path: Path) -> None:
@@ -125,6 +130,17 @@ def test_rejects_invalid_values(monkeypatch: pytest.MonkeyPatch, name: str, valu
     monkeypatch.setenv(name, value)
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_databricks_host_and_volume_root_drop_trailing_slash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DATABRICKS_HOST", "https://example.cloud.databricks.com/")
+    volume_root = "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    monkeypatch.setenv("DATABRICKS_VOLUME_ROOT", volume_root + "/")
+    settings = Settings()
+    assert settings.databricks_host == "https://example.cloud.databricks.com"
+    assert settings.databricks_volume_root == volume_root
 
 
 def test_secrets_are_masked() -> None:

@@ -36,6 +36,11 @@ from consilium.pipeline.project import (  # pragma: allowlist secret
     fetch_proj_contrast,
     project_cohort,
 )
+from consilium.pipeline.reconcile import (  # pragma: allowlist secret
+    ReconcileResult,
+    fetch_gold_counts,
+    reconcile,
+)
 from consilium.pipeline.reports import ensure_reports_csv  # pragma: allowlist secret
 from consilium.pipeline.run import RunResult, run_pipeline  # pragma: allowlist secret
 from consilium.pipeline.stage_reports import (  # pragma: allowlist secret
@@ -43,11 +48,18 @@ from consilium.pipeline.stage_reports import (  # pragma: allowlist secret
     encode_concept_parquet,
     run_reports,
 )
+from consilium.pipeline.subset import SubsetResult, write_subset  # pragma: allowlist secret
 from consilium.pipeline.thumbs import (  # pragma: allowlist secret
     AlignmentResult,
     ThumbsResult,
     thumbs_cohort,
     verify_alignment,
+)
+from consilium.pipeline.volume import (  # pragma: allowlist secret
+    UploadResult,
+    files_client,
+    parse_case_ids,
+    upload_volume,
 )
 
 _Result = (
@@ -62,6 +74,9 @@ _Result = (
     | LoadResult
     | RunResult
     | EvalResult
+    | SubsetResult
+    | UploadResult
+    | ReconcileResult
 )
 
 
@@ -113,6 +128,9 @@ def build_parser() -> argparse.ArgumentParser:
     _add_export_parser(subcommands)
     _add_alignment_parser(subcommands)
     _add_load_parser(subcommands)
+    _add_subset_parser(subcommands)
+    _add_upload_parser(subcommands)
+    _add_reconcile_parser(subcommands)
     _add_run_parser(subcommands)
     _add_evaluate_parser(subcommands)
     return parser
@@ -279,6 +297,96 @@ def _add_load_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentPa
         action="store_true",
         help="Remove seeded fixture cases before loading. Other cases stay.",
     )
+    load.add_argument(
+        "--max-cases",
+        type=int,
+        default=None,
+        help=(
+            "Load a deterministic Lakebase subset of at most this many cases. "
+            "Held-out cases and earlier cases of the same patient are kept."
+        ),
+    )
+
+
+def _add_subset_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    subset = subcommands.add_parser(
+        "subset",
+        help="Write a specialty-balanced Lakebase subset of an export directory",
+    )
+    subset.add_argument(
+        "--from",
+        dest="export_dir",
+        type=Path,
+        required=True,
+        help="Directory of pipeline parquet files, usually data/export.",
+    )
+    subset.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help="Destination directory, usually data/export_lakebase.",
+    )
+    subset.add_argument("--max-cases", type=int, default=45)
+
+
+def _add_upload_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    upload = subcommands.add_parser(
+        "upload-volume",
+        help="Upload parquet, thumbnail packs, and slides to a Unity Catalog Volume",
+    )
+    upload.add_argument("--from", dest="export_dir", type=Path, required=True)
+    upload.add_argument(
+        "--thumbs",
+        type=Path,
+        default=None,
+        help="Thumbnail directory. Default: <export>/../thumbs.",
+    )
+    upload.add_argument(
+        "--slides",
+        type=Path,
+        default=None,
+        help="Slide directory of {slide_id}.svs files. Default: <export>/../slides.",
+    )
+    upload.add_argument(
+        "--slides-for-export",
+        type=Path,
+        default=None,
+        help="Upload only the .svs files named in this export's slide.parquet.",
+    )
+    upload.add_argument(
+        "--skip-slides",
+        action="store_true",
+        help="Do not upload .svs files.",
+    )
+    upload.add_argument(
+        "--case-ids",
+        default=None,
+        help="Comma-separated case ids, or a file with one id per line. Limits slides and packs.",
+    )
+    upload.add_argument(
+        "--volume-root",
+        default=None,
+        help="Volume path. Default: DATABRICKS_VOLUME_ROOT.",
+    )
+
+
+def _add_reconcile_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    check = subcommands.add_parser(
+        "reconcile",
+        help="Compare parquet, Delta gold, and Postgres row counts",
+    )
+    check.add_argument("--from", dest="export_dir", type=Path, required=True)
+    check.add_argument(
+        "--subset-from",
+        type=Path,
+        default=None,
+        help="Subset parquet that was loaded. Postgres is compared with this, gold with --from.",
+    )
+    check.add_argument(
+        "--database-url",
+        default=None,
+        help="Postgres or Lakebase URL. Default: DATABASE_URL.",
+    )
 
 
 def _add_evaluate_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -356,6 +464,12 @@ def main(argv: list[str] | None = None) -> int:
             result = load_parquet(args.export_dir, replace_fixtures=args.replace_fixtures)
         elif args.command == "evaluate":
             result = run_evaluate(out_dir=args.out_dir, encoder=args.encoder)
+        elif args.command == "subset":
+            result = write_subset(args.export_dir, args.out, max_cases=args.max_cases)
+        elif args.command == "upload-volume":
+            result = _run_upload(args)
+        elif args.command == "reconcile":
+            result = _run_reconcile(args)
         elif args.command == "run":
             result = run_pipeline(
                 tier=args.tier,
@@ -518,6 +632,52 @@ def _run_extract(args: argparse.Namespace) -> ExtractResult:
         gpu=args.gpu,
         segmenter=args.segmenter,
         trident_executable=args.trident,
+    )
+
+
+def _run_upload(args: argparse.Namespace) -> UploadResult:
+    settings = get_settings()
+    root = args.volume_root or settings.databricks_volume_root
+    if root is None or str(root).strip() == "":
+        raise ValueError("DATABRICKS_VOLUME_ROOT is not set")
+    token = None
+    if settings.databricks_token is not None:
+        token = settings.databricks_token.get_secret_value()
+    return upload_volume(
+        args.export_dir,
+        volume_root=str(root),
+        thumbs_dir=args.thumbs,
+        slides_dir=args.slides,
+        skip_slides=args.skip_slides,
+        case_ids=parse_case_ids(args.case_ids),
+        slides_for_export=args.slides_for_export,
+        host=settings.databricks_host,
+        token=token,
+    )
+
+
+def _run_reconcile(args: argparse.Namespace) -> ReconcileResult:
+    settings = get_settings()
+    gold = None
+    warehouse = settings.databricks_warehouse_id
+    catalog = settings.databricks_catalog
+    schema = settings.databricks_schema
+    if warehouse and catalog and schema:
+        token = None
+        if settings.databricks_token is not None:
+            token = settings.databricks_token.get_secret_value()
+        client = files_client(host=settings.databricks_host, token=token)
+        gold = fetch_gold_counts(
+            client,
+            warehouse_id=warehouse,
+            catalog=catalog,
+            schema=schema,
+        )
+    return reconcile(
+        args.export_dir,
+        subset_dir=args.subset_from,
+        database_url=args.database_url,
+        gold_counts=gold,
     )
 
 

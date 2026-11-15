@@ -66,7 +66,7 @@ def volume_client(settings: Settings) -> object:
     client_type = getattr(sdk, "Work" + "spaceClient")
     kwargs: dict[str, str] = {}
     if settings.databricks_host:
-        kwargs["host"] = settings.databricks_host
+        kwargs["host"] = settings.databricks_host.rstrip("/")
     token = settings.databricks_token
     if token is not None:
         kwargs["token"] = token.get_secret_value()
