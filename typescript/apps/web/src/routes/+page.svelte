@@ -406,7 +406,9 @@
 												size="md"
 											/>
 										{:else}
-											<span class="thumb-fallback" aria-hidden="true"></span>
+											<span class="thumb-fallback" aria-hidden="true">
+												<Icon name="slide" />
+											</span>
 										{/if}
 										<div>
 											<Button
@@ -595,12 +597,14 @@
 		white-space: nowrap;
 	}
 	.thumb-fallback {
-		display: block;
+		display: grid;
+		place-items: center;
 		width: var(--thumb-md);
 		height: var(--thumb-md);
 		border-radius: var(--radius-sm);
 		background: var(--color-image-placeholder);
 		border: var(--border-width) solid var(--color-border);
+		color: var(--color-text-muted);
 	}
 	.list-footer {
 		background: var(--color-surface-raised);
