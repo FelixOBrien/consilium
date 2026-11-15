@@ -6,10 +6,14 @@ from pgvector import HalfVector, Vector
 
 from consilium.cli import main  # pragma: allowlist secret
 from consilium.config import SearchBackend  # pragma: allowlist secret
-from consilium.db.connection import connect, connection_pool  # pragma: allowlist secret
+from consilium.db.connection import (  # pragma: allowlist secret
+    connect,
+    connection_pool,
+    is_lakebase_url,
+    prepare_database_url,
+)
 from consilium.db.migrate import (  # pragma: allowlist secret
     LakebaseIndexesNotImplemented,
-    LakebaseMigrationRefused,
     _strip_comments,
     list_migrations,
     migrate,
@@ -265,22 +269,19 @@ def test_split_sql_keeps_semicolons_inside_strings() -> None:
     assert "a;b" not in statements[1]
 
 
-def test_refuses_databricks_host_without_connecting() -> None:
-    url = "postgresql://role:fixture@lakebase.example:5432/db"
-    with pytest.raises(LakebaseMigrationRefused) as exc:
-        migrate(url)
-    message = str(exc.value)
-    assert url not in message
-    assert "fixture" not in message
-
-
-def test_refuses_lakebase_database_url_match(monkeypatch: pytest.MonkeyPatch) -> None:
-    url = "postgresql://127.0.0.1:1/not-opened"
-    monkeypatch.setenv("LAKEBASE_DATABASE_URL", url)
-    with pytest.raises(LakebaseMigrationRefused) as exc:
-        migrate(url)
-    assert url not in str(exc.value)
-    assert "secret" not in str(exc.value)
+def test_lakebase_url_requires_sslmode_without_connecting() -> None:
+    url = "postgresql://role:fixture@ep.lakebase.cloud.databricks.com:5432/databricks_postgres"
+    assert is_lakebase_url(url)
+    prepared = prepare_database_url(url)
+    assert "sslmode=require" in prepared or "sslmode=require" in prepared.replace(" ", "")
+    assert "fixture" in prepared
+    assert "lakebase_ann" not in prepared
+    kept = prepare_database_url(url + "?sslmode=verify-full")
+    assert "verify-full" in kept
+    assert "sslmode=require" not in kept or "verify-full" in kept
+    local = "postgresql://consilium:consilium@localhost:5432/consilium"  # pragma: allowlist secret
+    assert prepare_database_url(local) == local
+    assert not is_lakebase_url(local)
 
 
 def test_fresh_migrate_is_idempotent(empty_database: str) -> None:

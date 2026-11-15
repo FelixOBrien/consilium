@@ -88,6 +88,10 @@ class Settings(BaseSettings):
     hf_token: SecretStr | None = Field(default=None, repr=False)
     databricks_host: str | None = None
     databricks_token: SecretStr | None = Field(default=None, repr=False)
+    databricks_volume_root: str | None = None
+    databricks_warehouse_id: str | None = None
+    databricks_catalog: str | None = None
+    databricks_schema: str | None = None
     mlflow_tracing_enabled: bool = False
     mlflow_experiment_name: str = DEFAULT_MLFLOW_EXPERIMENT
     mlflow_tracking_uri: str | None = None
@@ -165,8 +169,10 @@ class Settings(BaseSettings):
     @field_validator(
         "anthropic_api_key",
         "hf_token",
-        "databricks_host",
         "databricks_token",
+        "databricks_warehouse_id",
+        "databricks_catalog",
+        "databricks_schema",
         "mlflow_tracking_uri",
         mode="before",
     )
@@ -175,6 +181,14 @@ class Settings(BaseSettings):
         if _blank(value):
             return None
         return value
+
+    @field_validator("databricks_host", "databricks_volume_root", mode="before")
+    @classmethod
+    def strip_databricks_location(cls, value: object) -> object:
+        """Blank values stay unset. A trailing slash is removed before use."""
+        if _blank(value):
+            return None
+        return str(value).strip().rstrip("/")
 
     @field_serializer(
         "anthropic_api_key",

@@ -3,22 +3,20 @@
 Schema files run in a transaction per file and are recorded in `schema_migration`.
 Index files (HNSW and GIN) can run separately, after a bulk load.
 
-`SEARCH_BACKEND=pgvector` applies those indexes. `SEARCH_BACKEND=lakebase` is a
-marked branch and raises: Lakebase Search index types are not created here.
-This runner also refuses `LAKEBASE_DATABASE_URL` and Databricks hosts. Loading
-Lakebase is SKO-280.
+`SEARCH_BACKEND=pgvector` applies those indexes on local Postgres and on
+Lakebase. Connections to a Lakebase host use `sslmode=require`.
+`SEARCH_BACKEND=lakebase` is a marked branch and raises: `lakebase_ann` and
+`lakebase_bm25` are not created here.
 """
 
 from __future__ import annotations
 
 import hashlib
-import os
 import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
-from urllib.parse import urlparse
 
 import psycopg
 from psycopg import sql
@@ -36,10 +34,6 @@ create table if not exists schema_migration (
     applied_at timestamptz not null default now()
 )
 """
-
-
-class LakebaseMigrationRefused(RuntimeError):
-    """The target database is Lakebase. SKO-255 does not migrate it."""
 
 
 class LakebaseIndexesNotImplemented(RuntimeError):
@@ -100,7 +94,6 @@ def migrate(
         raise ValueError("migrate() needs include_schema, include_indexes, or both")
 
     url = database_url if database_url is not None else _configured_database_url()
-    _refuse_lakebase_target(url)
     backend = search_backend if search_backend is not None else get_settings().search_backend
     if include_indexes and backend is SearchBackend.LAKEBASE and not include_schema:
         # No schema work to do first. Refuse before opening a connection.
@@ -145,7 +138,6 @@ def migrate(
 def migration_status(database_url: str | None = None) -> list[MigrationState]:
     """Report each migration file as applied or pending. Does not write."""
     url = database_url if database_url is not None else _configured_database_url()
-    _refuse_lakebase_target(url)
     files = list_migrations()
     conn = connect(url, register=False)
     try:
@@ -198,7 +190,7 @@ def run_db_command(args: object) -> int:
             from consilium.db.seed import run_seed_command  # pragma: allowlist secret
 
             return run_seed_command()
-    except (LakebaseMigrationRefused, LakebaseIndexesNotImplemented, RuntimeError) as exc:
+    except (LakebaseIndexesNotImplemented, RuntimeError) as exc:
         print(_public_error(exc), file=sys.stderr)
         return 1
     except psycopg.Error as exc:
@@ -309,19 +301,6 @@ def split_sql(script: str) -> list[str]:
 
 def _configured_database_url() -> str:
     return resolve_database_url(None)
-
-
-def _refuse_lakebase_target(url: str) -> None:
-    configured = os.environ.get("LAKEBASE_DATABASE_URL", "").strip()
-    if configured and configured == url:
-        raise LakebaseMigrationRefused(
-            "Refusing to migrate LAKEBASE_DATABASE_URL. SKO-280 loads Lakebase."
-        )
-    host = (urlparse(url).hostname or "").lower()
-    if "databricks" in host or "lakebase" in host:
-        raise LakebaseMigrationRefused(
-            "Refusing to migrate a Databricks Lakebase host. SKO-280 loads Lakebase."
-        )
 
 
 def _raise_lakebase_indexes() -> None:

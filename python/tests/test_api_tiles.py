@@ -391,6 +391,11 @@ def test_volume_client_passes_host_and_token(monkeypatch: pytest.MonkeyPatch) ->
     assert isinstance(client, FakeClient)
     assert captured["host"] == "https://example.cloud.databricks.com"
     assert captured["token"] == "test-databricks-token"
+    captured.clear()
+    volume_client(
+        Settings(databricks_host="https://example.cloud.databricks.com///")
+    )
+    assert captured["host"] == "https://example.cloud.databricks.com"
 
 
 def _assert_pyramid(

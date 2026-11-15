@@ -30,12 +30,12 @@ Embeddings are computed once, offline, on a GPU. Everything the user does at que
 | Component | Where | Responsibility |
 | --- | --- | --- |
 | Web app | `typescript/apps/web` | SvelteKit static SPA. Screens in [screens/](screens/index.md). Talks only to `/api`. |
-| API | `python/src/consilium/api` | FastAPI. Patients, cases, reports, tiles, search, heatmaps, annotations, consult, ingestion jobs. Serves the built SPA in deployment. |
-| Search | `consilium/search` | SQL for vector, keyword and fused retrieval. |
-| Encoders | `consilium/embed` | CONCH-Z text tower and bge-small, loaded lazily, on CPU. |
-| Tile server | `consilium/tiles` | Deep Zoom tiles from the original Aperio SVS file using `openslide-python` with the `openslide-bin` wheel, so no system packages are needed. Patch thumbnails from per-slide packs. |
-| Consult agent | `consilium/agent` | Claude tool-use loop over the search functions, streamed to the UI. |
-| Pipeline | `consilium/pipeline` | Cohort manifest, download, TRIDENT wrapper, projection, report processing, parquet export, loader, single-slide worker. |
+| API | `python/src/consilium/api` | FastAPI. Patients, cases, reports, tiles, search, heatmaps, annotations, consult, ingestion jobs. Serves the built SPA in deployment. | <!-- pragma: allowlist secret -->
+| Search | `consilium/search` | SQL for vector, keyword and fused retrieval. | <!-- pragma: allowlist secret -->
+| Encoders | `consilium/embed` | CONCH-Z text tower and bge-small, loaded lazily, on CPU. | <!-- pragma: allowlist secret -->
+| Tile server | `consilium/tiles` | Deep Zoom tiles from the original Aperio SVS file using `openslide-python` with the `openslide-bin` wheel, so no system packages are needed. Patch thumbnails from per-slide packs. | <!-- pragma: allowlist secret -->
+| Consult agent | `consilium/agent` | Claude tool-use loop over the search functions, streamed to the UI. | <!-- pragma: allowlist secret -->
+| Pipeline | `consilium/pipeline` | Cohort manifest, download, TRIDENT wrapper, projection, report processing, parquet export, loader, single-slide worker. | <!-- pragma: allowlist secret -->
 | Lakehouse | `python/databricks` | Notebook that builds Delta tables from the Volume and loads Lakebase; App config. |
 
 ## Decisions
@@ -104,7 +104,10 @@ Environment variables, read through one settings module. `.env.example` lists th
 | `LLM_PROVIDER` | `anthropic` \| `databricks` | Where the agent's model calls go. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | secret, model id | Agent model. |
 | `HF_TOKEN` | secret | Gated CONCH-Z and CONCH v1.5 weights. TCGA slides and reports need no token. |
-| `DATABRICKS_HOST`, `DATABRICKS_TOKEN` | secret | Volume access and deployment from outside Databricks. Clients strip a trailing `/` from the host before joining an API path. |
+| `DATABRICKS_HOST`, `DATABRICKS_TOKEN` | secret | Volume access and deployment from outside Databricks. A trailing slash on the host is removed. |
+| `DATABRICKS_VOLUME_ROOT` | `/Volumes/...` | Unity Catalog Volume that receives parquet, thumbnail packs, and slides. |
+| `DATABRICKS_WAREHOUSE_ID` | warehouse id | Optional. Lets `consilium.pipeline reconcile` count Delta gold tables. | <!-- pragma: allowlist secret -->
+| `DATABRICKS_CATALOG`, `DATABRICKS_SCHEMA` | names | Optional Unity Catalog names for those gold counts. |
 | `MLFLOW_TRACING_ENABLED` | `true` \| `false` | Log each consult turn as an MLflow trace. Default `false`: the agent does not import MLflow and does not call Databricks. |
 | `MLFLOW_EXPERIMENT_NAME` | path | Experiment for those traces. Default `/Shared/consilium-consult`. | <!-- pragma: allowlist secret -->
 | `MLFLOW_TRACKING_URI` | `databricks` or a directory | Where traces go. Unset means `databricks`, using `DATABRICKS_HOST` and `DATABRICKS_TOKEN`. A local directory is the file store used in tests. Tracing stays off when the Databricks target is selected and either credential is missing. |
@@ -130,9 +133,24 @@ Delta tables mirror the parquet files: `bronze` as landed, `silver` typed and de
 | --- | --- | --- |
 | Slide download or feature extraction overruns the evening (TCGA slides are 0.2–2 GB each) | Medium | Cap slide size at 1 GB in the manifest, download with bounded parallelism ahead of extraction, start the smoke test first, and cut the cohort tier rather than features if needed. |
 | An SVS file lacks `aperio.MPP` or `aperio.AppMag`, so TRIDENT cannot find 20x | Low | Caught by the smoke test. Supply microns-per-pixel in TRIDENT's slide list, or drop the slide from the manifest. |
-| Lakebase Free Edition storage or index build cannot hold the demo tier | Medium | Load a smaller tier into Lakebase; the full tier stays in local Postgres for the demo. |
+| Lakebase Free Edition storage or index build cannot hold the demo tier | Medium | Load the measured subset below. The full tier stays in local Postgres. Delta gold still matches the full parquet. |
 | The App cannot reach the Anthropic API | Medium | Test in the provisioning issue. Fall back to `LLM_PROVIDER=databricks`, or run the API on the laptop against Lakebase. |
 | Databricks App deployment fails late | Medium | Laptop run is the default demo path; the App is an addition. |
 | CONCH-Z text tower is slow or large on CPU | Low | Cache encoded queries; the concept chips are pre-encoded at startup. |
 | Text-to-patch results are weak for some phrases | Medium | Curate the demo concepts and cases from what the evaluation shows works. |
 | Agent spends the credit budget | Low | Cap tool-result size and turn count; use a mid-tier model. |
+
+### Lakebase subset
+
+Lakebase Free Edition caps a project at 512 MB (`neon.max_cluster_size`). The demo tier's patch vectors alone are larger than that, so Lakebase does not receive the full export. `SEARCH_BACKEND` stays `pgvector`. Migrations create the HNSW and GIN indexes in `0002_indexes.sql` and never create `lakebase_ann` or `lakebase_bm25`.
+
+Measured on 14 Nov 2026 with Postgres 16.15 and pgvector 0.8.7, the same extension version as this Lakebase project: 4,000 `patch` rows, 3,200 of them `in_corpus`. `pg_relation_size(patch)` was 8,192,000 bytes (2,048 per row). The partial HNSW index was 6,561,792 bytes (2,051 per in-corpus row). Report-chunk embeddings are the same 1,536-byte payload, so they use the same constants.
+
+The selector adds 25% headroom (5,124 bytes for an in-corpus patch, chunk, or ready slide; 2,560 bytes otherwise), keeps 32 MiB for the rest of the catalog, and stops sampling once the estimate reaches 320 MiB. That sits inside the 250–350 MiB band and leaves the rest of the 512 MB cap unused. Held-out open cases are always kept, and so is every earlier case of a patient who is included. Every pathologist and every concept is copied. Signed-out cases fill the remaining slots one specialty at a time, in specialty order, up to `--max-cases` (default 45). The command is:
+
+```bash
+uv run python -m consilium.pipeline subset --from data/export --out data/export_lakebase --max-cases 45 <!-- pragma: allowlist secret -->
+SEARCH_BACKEND=pgvector uv run python -m consilium.pipeline load --from data/export_lakebase <!-- pragma: allowlist secret -->
+```
+
+`load` logs `pg_database_size(current_database())` after the copy and the index build. `consilium.pipeline reconcile --from data/export --subset-from data/export_lakebase` expects Delta gold to match the full parquet and Postgres to match the subset. <!-- pragma: allowlist secret -->
