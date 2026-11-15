@@ -4,6 +4,8 @@ Consilium is a histopathology case workspace for **information retrieval and pre
 
 Built at [Imperial AI Hack](https://imperialaihack.com/), 13–15 November 2026, for Track 02, Autonomous Agents.
 
+Built by [Felix O'Brien](https://github.com/felixobrien) - feo26@ic.ac.uk.
+
 > **Research prototype. Not a diagnostic device and not for clinical use.**
 
 > **Synthetic data.** The pathologist roster, case assignments, sign-out dates, and synthetic longitudinal links between cases are not real clinical records. Pathologist rows are marked `is_synthetic`. Patient rows whose history joins more than one TCGA donor are marked `is_synthetic_linkage`. The diagnostic slides and the pathology report texts under those rows are public and de-identified: TCGA whole-slide images from the NCI Genomic Data Commons, and the TCGA-Reports corpus.
