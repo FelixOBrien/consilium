@@ -33,10 +33,12 @@ from consilium.api.schemas.common import (  # pragma: allowlist secret
 from consilium.api.schemas.concept import (  # pragma: allowlist secret
     ENCODER_TEXT_LIMIT,
     SIMILARITY_NOTICE,
+    TISSUE_SIMILARITY_NOTICE,
     Concept,
     HeatmapPatchScore,
     HeatmapRequest,
     HeatmapResponse,
+    HeatmapSource,
 )
 from consilium.api.schemas.consult import (  # pragma: allowlist secret
     Citation,
@@ -77,6 +79,7 @@ from consilium.api.schemas.search import (  # pragma: allowlist secret
 )
 from consilium.api.schemas.search import SearchFilters as QueryFilters  # pragma: allowlist secret
 from consilium.api.schemas.slide import SlideDetail, SlideSummary  # pragma: allowlist secret
+from consilium.search.cluster import grow_tissue_cluster  # pragma: allowlist secret
 
 DEMO_USER_ID = "path-okafor"
 OTHER_USER_ID = "path-adebayo"
@@ -497,6 +500,8 @@ class Store:
 
     def heatmap(self, slide_id: str, body: HeatmapRequest) -> HeatmapResponse:
         self._slide(slide_id)
+        if body.patch_id is not None or body.region is not None:
+            return self._tissue_heatmap(slide_id, body)
         concept_id: str | None = None
         if body.concept_id is not None:
             concept = next((item for item in self.concepts if item.id == body.concept_id), None)
@@ -504,8 +509,10 @@ class Store:
                 raise StoreError(404, "not_found", "Unknown concept.")
             phrase = concept.prompt
             concept_id = concept.id
+            source: HeatmapSource = "concept"
         else:
             phrase = body.text or ""
+            source = "text"
         truncated = len(phrase) > ENCODER_TEXT_LIMIT
         if truncated:
             phrase = phrase[:ENCODER_TEXT_LIMIT]
@@ -522,6 +529,65 @@ class Store:
             truncated=truncated,
             patches=patches,
             top=top,
+            source=source,
+            cluster=None,
+        )
+
+    def _tissue_heatmap(self, slide_id: str, body: HeatmapRequest) -> HeatmapResponse:
+        # Imported here so this module does not import the database layer at load.
+        from consilium.db.concepts import normalise_scores  # pragma: allowlist secret
+
+        if body.patch_id is not None:
+            patch = self._patch(body.patch_id)
+            if patch.slide_id != slide_id:
+                raise StoreError(
+                    422,
+                    "validation_error",
+                    "patch_id belongs to a different slide.",
+                )
+            seeds = [patch]
+            source: HeatmapSource = "patch"
+        else:
+            region = body.region
+            assert region is not None
+            if region.slide_id != slide_id:
+                raise StoreError(
+                    422,
+                    "validation_error",
+                    "region belongs to a different slide.",
+                )
+            seeds = [
+                patch
+                for patch in self.patches
+                if patch.slide_id == slide_id and _intersects(patch, region)
+            ]
+            if not seeds:
+                raise StoreError(422, "validation_error", "Region covers no tissue patches.")
+            source = "region"
+        on_slide = sorted(
+            (patch for patch in self.patches if patch.slide_id == slide_id),
+            key=lambda patch: (patch.y, patch.x),
+        )
+        seed_ids = {patch.id for patch in seeds}
+        scores = normalise_scores(
+            [1.0 if patch.id in seed_ids else 0.0 for patch in on_slide]
+        )
+        patches = [
+            HeatmapPatchScore(x=patch.x, y=patch.y, size=patch.size, score=score)
+            for patch, score in zip(on_slide, scores, strict=True)
+        ]
+        top = sorted(patches, key=lambda item: (-item.score, item.y, item.x))[:10]
+        cluster = grow_tissue_cluster(patches, seeds) if body.grow else None
+        return HeatmapResponse(
+            text="",
+            concept_id=None,
+            negative_text=None,
+            notice=TISSUE_SIMILARITY_NOTICE,
+            truncated=False,
+            patches=patches,
+            top=top,
+            source=source,
+            cluster=cluster,
         )
 
     def search_patches(self, body: PatchSearchRequest) -> SearchResponse | SlideScopeResponse:

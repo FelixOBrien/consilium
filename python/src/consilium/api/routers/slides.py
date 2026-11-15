@@ -198,10 +198,10 @@ def create_slide_heatmap(
     store: StoreDep,
     db: DbConn,
 ) -> HeatmapResponse:
-    """Score patches against a report word (`text`) or an optional concept."""
+    """Score one slide from a report word, a concept, or selected tissue."""
     if request.app.state.use_stub_store:
         return store.heatmap(slide_id, body)
     encoders = getattr(request.app.state, "text_encoders", None)
-    if encoders is None:
+    if encoders is None and (body.text is not None or body.concept_id is not None):
         fail(500, "error", "Text encoder is not configured.")
     return heatmap_for(db, encoders, slide_id, body)

@@ -977,6 +977,97 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "HeatmapBBox": {
+        "additionalProperties": false,
+        "description": "Level-0 box that encloses every cluster cell.",
+        "properties": {
+          "height": {
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "width": {
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "type": "integer"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "HeatmapBBox",
+        "type": "object"
+      },
+      "HeatmapCell": {
+        "additionalProperties": false,
+        "description": "One patch in a tissue cluster. Coordinates only.",
+        "properties": {
+          "size": {
+            "exclusiveMinimum": 0.0,
+            "title": "Size",
+            "type": "integer"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "size"
+        ],
+        "title": "HeatmapCell",
+        "type": "object"
+      },
+      "HeatmapCluster": {
+        "additionalProperties": false,
+        "description": "8-connected similar tissue. Embeddings are never included.",
+        "properties": {
+          "bbox": {
+            "$ref": "#/components/schemas/HeatmapBBox"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/HeatmapCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "patch_count": {
+            "minimum": 1.0,
+            "title": "Patch Count",
+            "type": "integer"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "number"
+          }
+        },
+        "required": [
+          "cells",
+          "bbox",
+          "threshold",
+          "patch_count"
+        ],
+        "title": "HeatmapCluster",
+        "type": "object"
+      },
       "HeatmapPatchScore": {
         "additionalProperties": false,
         "properties": {
@@ -1011,7 +1102,7 @@
       },
       "HeatmapRequest": {
         "additionalProperties": false,
-        "description": "F-06 sends `text`. `concept_id` and `negative_text` are optional.",
+        "description": "Exactly one source: a report word, a concept, a patch or a region.\n\n`negative_text` belongs with `text` or `concept_id`. `grow` belongs with\n`patch_id` or `region`. `region` is the same level-0 rectangle as patch search.",
         "properties": {
           "concept_id": {
             "anyOf": [
@@ -1024,6 +1115,11 @@
             ],
             "title": "Concept Id"
           },
+          "grow": {
+            "default": false,
+            "title": "Grow",
+            "type": "boolean"
+          },
           "negative_text": {
             "anyOf": [
               {
@@ -1034,6 +1130,28 @@
               }
             ],
             "title": "Negative Text"
+          },
+          "patch_id": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patch Id"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Region"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "text": {
             "anyOf": [
@@ -1052,7 +1170,18 @@
       },
       "HeatmapResponse": {
         "additionalProperties": false,
+        "description": "Per-patch scores. `text` is empty when `source` is `patch` or `region`.",
         "properties": {
+          "cluster": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HeatmapCluster"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "concept_id": {
             "anyOf": [
               {
@@ -1086,6 +1215,16 @@
             "title": "Patches",
             "type": "array"
           },
+          "source": {
+            "enum": [
+              "text",
+              "concept",
+              "patch",
+              "region"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
           "text": {
             "title": "Text",
             "type": "string"
@@ -1107,7 +1246,8 @@
           "notice",
           "truncated",
           "patches",
-          "top"
+          "top",
+          "source"
         ],
         "title": "HeatmapResponse",
         "type": "object"
@@ -5069,7 +5209,7 @@
     },
     "/api/slides/{slide_id}/heatmap": {
       "post": {
-        "description": "Score patches against a report word (`text`) or an optional concept.",
+        "description": "Score one slide from a report word, a concept, or selected tissue.",
         "operationId": "create_slide_heatmap",
         "parameters": [
           {

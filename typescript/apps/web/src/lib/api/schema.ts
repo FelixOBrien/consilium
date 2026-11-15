@@ -409,7 +409,7 @@ export interface paths {
 		put?: never;
 		/**
 		 * Create Slide Heatmap
-		 * @description Score patches against a report word (`text`) or an optional concept.
+		 * @description Score one slide from a report word, a concept, or selected tissue.
 		 */
 		post: operations['create_slide_heatmap'];
 		delete?: never;
@@ -786,6 +786,45 @@ export interface components {
 			 */
 			status: 'ok';
 		};
+		/**
+		 * HeatmapBBox
+		 * @description Level-0 box that encloses every cluster cell.
+		 */
+		HeatmapBBox: {
+			/** Height */
+			height: number;
+			/** Width */
+			width: number;
+			/** X */
+			x: number;
+			/** Y */
+			y: number;
+		};
+		/**
+		 * HeatmapCell
+		 * @description One patch in a tissue cluster. Coordinates only.
+		 */
+		HeatmapCell: {
+			/** Size */
+			size: number;
+			/** X */
+			x: number;
+			/** Y */
+			y: number;
+		};
+		/**
+		 * HeatmapCluster
+		 * @description 8-connected similar tissue. Embeddings are never included.
+		 */
+		HeatmapCluster: {
+			bbox: components['schemas']['HeatmapBBox'];
+			/** Cells */
+			cells: components['schemas']['HeatmapCell'][];
+			/** Patch Count */
+			patch_count: number;
+			/** Threshold */
+			threshold: number;
+		};
 		/** HeatmapPatchScore */
 		HeatmapPatchScore: {
 			/** Score */
@@ -799,18 +838,33 @@ export interface components {
 		};
 		/**
 		 * HeatmapRequest
-		 * @description F-06 sends `text`. `concept_id` and `negative_text` are optional.
+		 * @description Exactly one source: a report word, a concept, a patch or a region.
+		 *
+		 *     `negative_text` belongs with `text` or `concept_id`. `grow` belongs with
+		 *     `patch_id` or `region`. `region` is the same level-0 rectangle as patch search.
 		 */
 		HeatmapRequest: {
 			/** Concept Id */
 			concept_id?: string | null;
+			/**
+			 * Grow
+			 * @default false
+			 */
+			grow: boolean;
 			/** Negative Text */
 			negative_text?: string | null;
+			/** Patch Id */
+			patch_id?: number | null;
+			region?: components['schemas']['Region'] | null;
 			/** Text */
 			text?: string | null;
 		};
-		/** HeatmapResponse */
+		/**
+		 * HeatmapResponse
+		 * @description Per-patch scores. `text` is empty when `source` is `patch` or `region`.
+		 */
 		HeatmapResponse: {
+			cluster?: components['schemas']['HeatmapCluster'] | null;
 			/** Concept Id */
 			concept_id?: string | null;
 			/** Negative Text */
@@ -819,6 +873,11 @@ export interface components {
 			notice: string;
 			/** Patches */
 			patches: components['schemas']['HeatmapPatchScore'][];
+			/**
+			 * Source
+			 * @enum {string}
+			 */
+			source: 'text' | 'concept' | 'patch' | 'region';
 			/** Text */
 			text: string;
 			/** Top */

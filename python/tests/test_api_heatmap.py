@@ -159,6 +159,8 @@ def test_text_heatmap_normalises_ranks_and_reports_truncation(world: HeatmapWorl
     assert body["text"] == "necrosis"
     assert body["concept_id"] is None
     assert body["negative_text"] is None
+    assert body["source"] == "text"
+    assert body["cluster"] is None
     assert body["truncated"] is False
     _assert_notice(body["notice"], truncated=False)
     _assert_unit_interval(body)
@@ -229,6 +231,8 @@ def test_concept_heatmap_uses_stored_embeddings_without_encoding(world: HeatmapW
     assert body["concept_id"] == "tumour-necrosis"
     assert body["text"] == "an H&E image of tumour necrosis"
     assert body["negative_text"] is None
+    assert body["source"] == "concept"
+    assert body["cluster"] is None
     assert body["truncated"] is False
     _assert_notice(body["notice"], truncated=False)
     _assert_unit_interval(body)
