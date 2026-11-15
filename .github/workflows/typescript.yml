@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - "typescript/**"
+      - "README.md"
       - ".github/workflows/typescript.yml"
   push:
     branches: [main]
     paths:
       - "typescript/**"
+      - "README.md"
       - ".github/workflows/typescript.yml"
 
 permissions:
