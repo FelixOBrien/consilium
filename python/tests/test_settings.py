@@ -156,7 +156,8 @@ def test_volume_root_fills_storage_root(monkeypatch: pytest.MonkeyPatch) -> None
         "/Volumes/main/consilium/raw/",  # pragma: allowlist secret
     )
     settings = Settings()
-    assert settings.databricks_volume_root == "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    expected = "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    assert settings.databricks_volume_root == expected
     assert settings.storage_root == Path(
         "/Volumes/main/consilium/raw"  # pragma: allowlist secret
     )
@@ -171,7 +172,8 @@ def test_explicit_storage_root_wins(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     settings = Settings()
     assert settings.storage_root == Path("/Volumes/other/raw")
-    assert settings.databricks_volume_root == "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    expected = "/Volumes/main/consilium/raw"  # pragma: allowlist secret
+    assert settings.databricks_volume_root == expected
 
 
 def test_web_build_dir_from_the_environment(
