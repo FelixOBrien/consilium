@@ -18,7 +18,7 @@ Use these role names exactly. Add a role here before using a new one.
 | --- | --- | --- |
 | [F01-case-worklist.md](F01-case-worklist.md) | F-01 Case worklist | US-01.1 – US-01.3 |
 | [F02-case-search.md](F02-case-search.md) | F-02 Case search | US-02.1 – US-02.3 |
-| [F03-slide-viewer.md](F03-slide-viewer.md) | F-03 Slide viewer | US-03.1 – US-03.4 |
+| [F03-slide-viewer.md](F03-slide-viewer.md) | F-03 Slide viewer | US-03.1 – US-03.5 |
 | [F04-report-viewer.md](F04-report-viewer.md) | F-04 Report viewer | US-04.1 – US-04.3 |
 | [F05-evidence-search.md](F05-evidence-search.md) | F-05 Evidence search | US-05.1 – US-05.5 |
 | [F06-phrase-heatmaps.md](F06-phrase-heatmaps.md) | F-06 Report-context similarity overlay | US-06.1 – US-06.3 |

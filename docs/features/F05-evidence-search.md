@@ -27,7 +27,7 @@ G1 and G3. This is the product's core claim: precedent for what is on screen, re
 **Out**
 - Encoding new images at query time. Queries use stored vectors only.
 - Ranking or suggesting a diagnosis from the results.
-- Side-by-side comparison view (P2).
+- Side-by-side comparison view (P2, [S-10](../screens/S10-compare.md)).
 
 ## Query types
 

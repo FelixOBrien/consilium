@@ -15,6 +15,7 @@ This folder documents where the features appear and what each screen does. Scree
 | [S-07](S07-search.md) | Search | `/search` | P0 | F-02 |
 | [S-08](S08-ingestion.md) | Ingestion | `/ingest` | P2 | F-09 |
 | [S-09](S09-patient.md) | Patient | `/patients/[patientId]` (plus `/patients` directory) | P1 | F-12, F-02, F-05 |
+| [S-10](S10-compare.md) | Slide compare | `/compare` | P2 | F-03 |
 
 ## Navigation
 
@@ -29,6 +30,9 @@ This folder documents where the features appear and what each screen does. Scree
                        │              └─ S-06 Annotations                                                     │
                        └─open case──► S-02 Case workspace                                                     │
    S-08 Ingestion ──job done──► S-02 of the new case ◄────────────────────────────────────────────────────────┘
+
+   Shared URL /compare?left=&right= ──► S-10 Compare ──Open case──► S-02 at that pane's slide and viewport
+   S-04 Evidence ──compare (once SKO-278 lands)──► S-10
 ```
 
 ## Shared elements
@@ -53,6 +57,7 @@ State that should survive reload or be shareable lives in the URL, not only in m
 | `panel` | S-02 | Which side panel is open: `report`, `evidence`, `consult`, `annotations`. |
 | `q`, `mode`, filters (including `patient_id`) | S-07 | Query, `reports` or `tissue`, and filters. |
 | `q`, `mode` | S-09 | Optional patient-scoped search query and mode (`reports` or `tissue`). |
+| `left`, `right`, `lx`, `ly`, `lzoom`, `rx`, `ry`, `rzoom`, `sync` | S-10 | Two slide ids, each viewport in level-0 pixels (F-03.5), and whether pan and zoom are linked (`sync=0` unlinks; default is linked). |
 
 ## Template
 
