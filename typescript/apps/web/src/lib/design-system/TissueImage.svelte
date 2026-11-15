@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from './Icon.svelte';
+
 	let {
 		src,
 		alt,
@@ -10,10 +12,28 @@
 		size?: 'sm' | 'md' | 'lg' | 'viewer';
 		zoom?: boolean;
 	} = $props();
+
+	let failedSrc = $state<string | null>(null);
+	const failed = $derived(failedSrc === src);
+	const iconSize = $derived(
+		size === 'sm' ? 'sm' : size === 'viewer' || size === 'lg' ? 'lg' : 'md'
+	);
 </script>
 
 <span class="tissue {size}" class:zoom>
-	<img {src} {alt} />
+	{#if failed}
+		<span class="fallback" role={alt ? 'img' : undefined} aria-label={alt || undefined}>
+			<Icon name="slide" size={iconSize} />
+		</span>
+	{:else}
+		<img
+			{src}
+			{alt}
+			onerror={() => {
+				failedSrc = src;
+			}}
+		/>
+	{/if}
 </span>
 
 <style>
@@ -30,6 +50,13 @@
 		height: 100%;
 		display: block;
 		object-fit: cover;
+	}
+	.fallback {
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+		color: var(--color-text-muted);
 	}
 	.sm {
 		width: var(--thumb-sm);

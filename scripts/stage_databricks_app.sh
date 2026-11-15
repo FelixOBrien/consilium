@@ -54,8 +54,9 @@ if [[ -n "$too_big" ]]; then
   exit 1
 fi
 
-static_bytes="$(du -sb "$STAGE/static_web" | awk '{print $1}')"
-stage_bytes="$(du -sb "$STAGE" | awk '{print $1}')"
+# BSD du (macOS) has no -b. -sk is 1024-byte blocks on both BSD and GNU du.
+static_bytes="$(( $(du -sk "$STAGE/static_web" | awk '{print $1}') * 1024 ))"
+stage_bytes="$(( $(du -sk "$STAGE" | awk '{print $1}') * 1024 ))"
 echo "Staged Databricks App: $STAGE"
 echo "Static build bytes: $static_bytes"
 echo "Stage bytes: $stage_bytes"

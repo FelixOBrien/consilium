@@ -11,6 +11,7 @@
 	import Badge from './Badge.svelte';
 	import Button from './Button.svelte';
 	import Icon from './Icon.svelte';
+	import LogoMark from './LogoMark.svelte';
 	import TextField from './TextField.svelte';
 	import Typography from './Typography.svelte';
 
@@ -60,7 +61,7 @@
 	<header class="global-header">
 		<div class="brand-group">
 			<a class="brand" href={resolve('/')}>
-				<span class="brand-mark"><Icon name="activity" /></span>
+				<span class="brand-mark"><LogoMark size={24} tone="inverse" /></span>
 				<span>
 					<Typography as="span" style="subsection">Consilium</Typography>
 					<Typography as="span" style="eyebrow" tone="muted">Retrieval workspace</Typography>

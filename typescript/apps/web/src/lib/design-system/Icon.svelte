@@ -14,6 +14,7 @@
 		Grid2X2,
 		Layers3,
 		MessageSquareText,
+		Microscope,
 		Minus,
 		MoreHorizontal,
 		PanelRight,
@@ -54,6 +55,7 @@
 		| 'report'
 		| 'search'
 		| 'send'
+		| 'slide'
 		| 'spark'
 		| 'user'
 		| 'warning'
@@ -86,6 +88,7 @@
 		report: FileText,
 		search: Search,
 		send: Send,
+		slide: Microscope,
 		spark: Sparkles,
 		user: CircleUserRound,
 		warning: TriangleAlert,
