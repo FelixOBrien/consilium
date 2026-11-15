@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from consilium.api.schemas.common import APIModel  # pragma: allowlist secret
 from consilium.api.schemas.pathologist import PathologistRef  # pragma: allowlist secret
@@ -56,8 +56,24 @@ class IngestionJob(APIModel):
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
+    outcome: Literal["created", "retried", "duplicate_active", "already_ingested"] | None = Field(
+        default=None,
+        description=(
+            "Set on POST /api/ingestion/jobs so the ingestion screen can tell a new "
+            "job from a retry, an active duplicate, or a slide that is already ready. "
+            "Null on later reads. created is HTTP 201; the other values are HTTP 200."
+        ),
+    )
 
 
 class IngestionJobCreate(APIModel):
     dataset: str = Field(min_length=1)
     slide_path: str = Field(min_length=1)
+
+    @field_validator("dataset", "slide_path")
+    @classmethod
+    def not_blank(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("must not be blank")
+        return text

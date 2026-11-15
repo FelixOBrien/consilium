@@ -65,9 +65,10 @@ All goals depend on it. Running a real ingestion in front of judges also shows t
 13. The run prints, and the job stores, counts per stage: slides, patches, reports, chunks, failures.
 
 ## API
-- `POST /api/ingestion/jobs` — body: `dataset` (TCGA project ID), `slide_path` (GDC slide file name or file ID). Creates a queued job.
-- `GET /api/ingestion/jobs` — recent jobs with stage and status.
-- `GET /api/ingestion/jobs/{id}` — one job with stage history and counts.
+- `POST /api/ingestion/jobs` — body: `dataset` (TCGA project ID), `slide_path` (GDC slide file name or file ID). Creates a queued job (HTTP 201, `outcome = created`). An active job for the same pair returns that job (HTTP 200, `duplicate_active`). The latest failed job is queued again, keeping its history and attempts (HTTP 200, `retried`). A slide that is already `ready` finishes as `done` with case, slide, and counts (HTTP 200, `already_ingested`).
+- `GET /api/ingestion/jobs` — recent jobs, newest first, with stage and status.
+- `GET /api/ingestion/jobs/{id}` — one job with stage history and counts, or 404.
+- `GET /api/health` — `status` plus live counts of cases, slides, patches, and report chunks for the corpus summary on S-08.
 
 The pipeline itself is a command-line program in `consilium.pipeline`, one subcommand per stage and one that runs them in order. <!-- pragma: allowlist secret -->
 

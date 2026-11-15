@@ -1,7 +1,7 @@
 ---
 model: ingestion_job
 table: ingestion_job
-status: planned
+status: in-progress
 written_by: app
 used_by: [F-09]
 ---
@@ -50,6 +50,8 @@ A request to ingest one slide, and the record of its progress. The table is the 
 Created from the ingestion screen ([S-08](../screens/S08-ingestion.md)). Updated only by the worker.
 
 ## API shape
-`IngestionJob` — all fields except `worker_id`, with `requested_by` as `PathologistRef`.
+`IngestionJob` — all fields except `worker_id`, with `requested_by` as `PathologistRef`. `outcome` is not stored. It is set only on `POST /api/ingestion/jobs`: `created` (HTTP 201, a new queued job), `retried` (the latest failed job is queued again and keeps `stage_history` and `attempts`), `duplicate_active` (the existing queued or running job), or `already_ingested` (the slide is already `ready`, so the job is `done` with `case_id`, `slide_id`, and `{patches, chunks}` from Postgres). The other three outcomes are HTTP 200. Later reads leave `outcome` null.
 
 `IngestionJobCreate` — `dataset`, `slide_path`.
+
+`GET /api/health` adds `cases`, `slides`, `patches`, and `report_chunks` (counts of `path_case`, `slide`, `patch`, and `report_chunk`) when Postgres is reachable. `status` stays `ok`.

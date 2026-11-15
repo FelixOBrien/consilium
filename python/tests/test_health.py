@@ -11,7 +11,9 @@ def test_health_and_lifespan() -> None:
     with TestClient(app) as client:
         response = client.get("/api/health")
         assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+        body = response.json()
+        assert body["status"] == "ok"
+        assert set(body) <= {"status", "cases", "slides", "patches", "report_chunks"}
         assert isinstance(client.app.state.settings, Settings)
         assert client.app.state.settings.search_backend.value == "pgvector"
 
