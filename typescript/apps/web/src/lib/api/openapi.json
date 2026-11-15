@@ -915,7 +915,56 @@
         "type": "object"
       },
       "HealthResponse": {
+        "description": "Liveness plus the corpus counts the ingestion screen summarises.",
         "properties": {
+          "cases": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cases"
+          },
+          "patches": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patches"
+          },
+          "report_chunks": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Chunks"
+          },
+          "slides": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slides"
+          },
           "status": {
             "const": "ok",
             "title": "Status",
@@ -1159,6 +1208,24 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "created",
+                  "retried",
+                  "duplicate_active",
+                  "already_ingested"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set on POST /api/ingestion/jobs so the ingestion screen can tell a new job from a retry, an active duplicate, or a slide that is already ready. Null on later reads. created is HTTP 201; the other values are HTTP 200.",
+            "title": "Outcome"
           },
           "requested_by": {
             "anyOf": [
@@ -3863,7 +3930,7 @@
                 }
               }
             },
-            "description": "An active job already exists for this dataset and slide path."
+            "description": "No new queued job. The body is the active job (duplicate_active), the failed job returned to the queue (retried), or a finished job for a slide that is already ready (already_ingested)."
           },
           "201": {
             "content": {

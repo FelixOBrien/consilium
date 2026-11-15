@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import {
 		Avatar,
@@ -14,26 +15,261 @@
 		TextField,
 		Typography
 	} from '#lib';
-	import { jobs } from '#lib/data.js';
+	import { formatCount, formatDuration, formatTimestamp } from '#lib/ingest/format.js';
+	import { createJob, fetchHealth, getJob, listJobs } from '#lib/ingest/load.js';
+	import {
+		corpusFromHealth,
+		interpretSubmit,
+		queuedWithoutWorker,
+		replaceJob,
+		statusTone,
+		transitionedToDone,
+		upsertJob,
+		type CorpusSnapshot,
+		type SubmitNotice
+	} from '#lib/ingest/outcomes.js';
+	import {
+		createPollScheduler,
+		hasActiveJob,
+		isActiveStatus,
+		POLL_INTERVAL_MS
+	} from '#lib/ingest/polling.js';
+	import {
+		COHORT_PROJECTS,
+		EMPTY_JOBS_DESCRIPTION,
+		EMPTY_JOBS_TITLE,
+		NO_WORKER_DESCRIPTION,
+		NO_WORKER_TITLE
+	} from '#lib/ingest/projects.js';
+	import { deriveTimeline, stageLabel } from '#lib/ingest/timeline.js';
+	import type { IngestionJob } from '#lib/ingest/types.js';
 
-	let dataset = $state('TCGA-SKCM');
-	let slidePath = $state('TCGA-EE-A29T-01Z-00-DX1.svs');
-	let selectedIndex = $state(0);
-	let screenState = $state('ready');
-	const selectedJob = $derived(jobs[selectedIndex]);
-	const stages = [
-		'Download slide',
-		'Segment tissue',
-		'Embed patches',
-		'Project features',
-		'Build thumbnails',
-		'Process report',
-		'Load database',
-		'Build indexes'
-	];
+	let dataset = $state<(typeof COHORT_PROJECTS)[number]>(COHORT_PROJECTS[0]);
+	let slidePath = $state('');
+	let jobs = $state<IngestionJob[]>([]);
+	let selectedId = $state<string | null>(null);
+	let listPhase = $state<'loading' | 'ready' | 'error'>('loading');
+	let listError = $state<string | null>(null);
+	let detailError = $state<string | null>(null);
+	let corpus = $state<CorpusSnapshot>({ kind: 'loading' });
+	let submitting = $state(false);
+	let formError = $state<string | null>(null);
+	let notice = $state<SubmitNotice | null>(null);
+	let retriedAt = $state<Record<string, number>>({});
+	let now = $state(Date.now());
+	let polling = $state(false);
+
+	let disposed = false;
+	let epoch = 0;
+	let pollInFlight = false;
+	let submitGeneration = 0;
+
+	const active = $derived(hasActiveJob(jobs));
+	const selected = $derived(jobs.find((job) => job.id === selectedId) ?? null);
+	const timeline = $derived(selected ? deriveTimeline(selected) : []);
+	const noWorker = $derived(queuedWithoutWorker(jobs, now, retriedAt));
+	const failedItem = $derived(timeline.find((item) => item.state === 'failed') ?? null);
+	const corpusStats = $derived(
+		corpus.kind === 'ready'
+			? [
+					{ label: 'Cases', value: formatCount(corpus.cases) },
+					{ label: 'Slides', value: formatCount(corpus.slides) },
+					{ label: 'Patches', value: formatCount(corpus.patches) },
+					{ label: 'Report chunks', value: formatCount(corpus.reportChunks) }
+				]
+			: [
+					{ label: 'Cases', value: '—' },
+					{ label: 'Slides', value: '—' },
+					{ label: 'Patches', value: '—' },
+					{ label: 'Report chunks', value: '—' }
+				]
+	);
+
+	const scheduler = createPollScheduler({
+		intervalMs: POLL_INTERVAL_MS,
+		onTick: () => {
+			void poll();
+		}
+	});
+
+	function errorText(error: unknown, fallback: string): string {
+		return error instanceof Error && error.message ? error.message : fallback;
+	}
+
+	async function refreshCorpus() {
+		try {
+			const health = await fetchHealth();
+			if (disposed) return;
+			corpus = corpusFromHealth(health);
+		} catch {
+			if (disposed) return;
+			corpus = { kind: 'fallback' };
+		}
+	}
+
+	function applyJobs(next: IngestionJob[], prior: IngestionJob[]) {
+		if (transitionedToDone(prior, next)) void refreshCorpus();
+		jobs = next;
+		if (selectedId && !next.some((job) => job.id === selectedId)) {
+			selectedId = next[0]?.id ?? null;
+		}
+	}
+
+	async function loadDetail(id: string, seen = epoch) {
+		try {
+			const detail = await getJob(id);
+			if (disposed || seen !== epoch || selectedId !== id) return;
+			const prior = jobs;
+			applyJobs(replaceJob(jobs, detail), prior);
+			detailError = null;
+		} catch (error) {
+			if (disposed || seen !== epoch || selectedId !== id) return;
+			detailError = errorText(error, 'Job detail could not be loaded.');
+		}
+	}
+
+	async function loadList() {
+		const seen = epoch;
+		if (jobs.length === 0) listPhase = 'loading';
+		try {
+			const listed = await listJobs();
+			if (disposed || seen !== epoch) return;
+			applyJobs(listed, jobs);
+			listPhase = 'ready';
+			listError = null;
+			if (!selectedId) selectedId = listed[0]?.id ?? null;
+			if (selectedId) void loadDetail(selectedId, seen);
+		} catch (error) {
+			if (disposed || seen !== epoch) return;
+			listError = errorText(error, 'Ingestion jobs could not be loaded.');
+			listPhase = jobs.length === 0 ? 'error' : 'ready';
+		}
+	}
+
+	async function poll() {
+		if (disposed || pollInFlight) return;
+		pollInFlight = true;
+		const seen = epoch;
+		now = Date.now();
+		const detailId = selected && isActiveStatus(selected.status) ? selected.id : null;
+		try {
+			const listed = await listJobs();
+			if (disposed || seen !== epoch) return;
+			let merged = listed;
+			if (detailId) {
+				try {
+					const detail = await getJob(detailId);
+					if (disposed || seen !== epoch) return;
+					merged = replaceJob(listed, detail);
+					if (selectedId === detailId) detailError = null;
+				} catch (error) {
+					if (disposed || seen !== epoch) return;
+					if (selectedId === detailId) {
+						detailError = errorText(error, 'Job detail could not be loaded.');
+					}
+				}
+			}
+			applyJobs(merged, jobs);
+			listError = null;
+			listPhase = 'ready';
+		} catch (error) {
+			if (disposed || seen !== epoch) return;
+			listError = errorText(error, 'Ingestion jobs could not be loaded.');
+			if (jobs.length === 0) listPhase = 'error';
+		} finally {
+			pollInFlight = false;
+		}
+	}
+
+	async function submitJob(datasetValue: string, slide: string) {
+		const path = slide.trim();
+		if (!path) {
+			formError = 'Enter a GDC diagnostic slide file name (.svs) or file UUID.';
+			return;
+		}
+		const generation = ++submitGeneration;
+		epoch += 1;
+		submitting = true;
+		formError = null;
+		try {
+			const created = await createJob({ dataset: datasetValue, slide_path: path });
+			if (disposed || generation !== submitGeneration) return;
+			const effect = interpretSubmit(created);
+			if (effect.retryMarkedAt) {
+				retriedAt = { ...retriedAt, [created.id]: Date.now() };
+			}
+			const prior = jobs;
+			const next = upsertJob(jobs, created);
+			if (effect.refreshCorpus) void refreshCorpus();
+			applyJobs(next, prior);
+			selectedId = effect.selectJobId;
+			notice = effect.notice;
+			listError = null;
+			detailError = null;
+			listPhase = 'ready';
+			now = Date.now();
+		} catch (error) {
+			if (disposed || generation !== submitGeneration) return;
+			formError = errorText(error, 'The job could not be queued.');
+		} finally {
+			if (generation === submitGeneration) submitting = false;
+		}
+	}
+
+	function selectJob(id: string) {
+		if (selectedId !== id) notice = null;
+		selectedId = id;
+		detailError = null;
+		void loadDetail(id);
+	}
+
+	function openCase(caseId: string) {
+		void goto(resolve('/cases/[caseId]', { caseId }));
+	}
+
+	function stageLine(item: (typeof timeline)[number]): string {
+		if (item.state === 'completed') {
+			const duration =
+				item.durationMs === null ? 'Complete' : `${formatDuration(item.durationMs)} · complete`;
+			return item.detail ? `${duration} · ${item.detail}` : duration;
+		}
+		if (item.state === 'active') {
+			return item.detail ? `In progress · ${item.detail}` : 'In progress';
+		}
+		if (item.state === 'failed') {
+			const duration =
+				item.durationMs === null ? 'Failed' : `${formatDuration(item.durationMs)} · failed`;
+			return item.detail ? `${duration} · ${item.detail}` : duration;
+		}
+		if (item.detail) {
+			const duration =
+				item.durationMs === null
+					? 'Previous attempt'
+					: `Previous attempt · ${formatDuration(item.durationMs)}`;
+			return `${duration} · ${item.detail}`;
+		}
+		return 'Waiting';
+	}
+
+	$effect(() => {
+		const shouldPoll = active;
+		if (disposed) {
+			scheduler.stop();
+			return;
+		}
+		polling = scheduler.setActive(shouldPoll);
+		return () => {
+			scheduler.stop();
+		};
+	});
 
 	onMount(() => {
-		screenState = page.url.searchParams.get('state') ?? 'ready';
+		void refreshCorpus();
+		void loadList();
+		return () => {
+			disposed = true;
+			scheduler.stop();
+		};
 	});
 </script>
 
@@ -53,60 +289,88 @@
 		<Button href="/" variant="ghost" icon="arrow-left">Back to worklist</Button>
 	</div>
 
-	<div class="corpus-grid">
-		{#each [['196', 'Cases'], ['243', 'Slides'], ['824k', 'Patches'], ['3,482', 'Report chunks']] as stat (stat[1])}
+	<div class="corpus-grid" data-corpus={corpus.kind}>
+		{#each corpusStats as stat (stat.label)}
 			<div class="surface stat">
-				<Typography style="title">{stat[0]}</Typography>
-				<Typography style="small" tone="muted">{stat[1]} loaded</Typography>
+				{#if corpus.kind === 'loading'}
+					<Skeleton height="lg" width="short" />
+				{:else}
+					<Typography style="title">{stat.value}</Typography>
+				{/if}
+				<Typography style="small" tone="muted">{stat.label} loaded</Typography>
 			</div>
 		{/each}
-		<div class="surface corpus-health">
-			<span class="health-mark"><Icon name="activity" /></span>
+		<div class="surface corpus-health {corpus.kind}">
+			<span class="health-mark"
+				><Icon name={corpus.kind === 'fallback' ? 'warning' : 'activity'} /></span
+			>
 			<div>
-				<Typography style="label">Corpus healthy</Typography>
-				<Typography style="small" tone="muted">Postgres + pgvector · checked 1 min ago</Typography>
+				<Typography style="label">
+					{corpus.kind === 'ready'
+						? 'Corpus counts'
+						: corpus.kind === 'loading'
+							? 'Checking corpus'
+							: 'Counts unavailable'}
+				</Typography>
+				<Typography style="small" tone="muted">
+					{corpus.kind === 'ready'
+						? 'Live counts from the health route'
+						: corpus.kind === 'loading'
+							? 'Asking Postgres for table counts'
+							: 'Postgres did not return table counts'}
+				</Typography>
 			</div>
+			{#if corpus.kind === 'fallback'}
+				<Button size="sm" variant="secondary" onclick={() => void refreshCorpus()}>Retry</Button>
+			{/if}
 		</div>
 	</div>
 
-	<section class="surface new-job">
+	<form
+		class="surface new-job"
+		aria-busy={submitting}
+		onsubmit={(event) => {
+			event.preventDefault();
+			void submitJob(dataset, slidePath);
+		}}
+	>
 		<div>
 			<Typography style="eyebrow" tone="accent">New single-slide job</Typography>
 			<Typography as="h2" style="section">Queue from TCGA (GDC)</Typography>
 			<Typography style="small" tone="secondary">
-				Reference a TCGA project and GDC diagnostic slide file name or ID. Files are downloaded by
-				the GPU worker.
+				Reference a TCGA project and a GDC diagnostic slide file name or file UUID. The worker
+				downloads the file.
 			</Typography>
 		</div>
-		<SelectField
-			bind:value={dataset}
-			label="TCGA project"
-			options={['TCGA-SKCM', 'TCGA-BRCA', 'TCGA-LUAD', 'TCGA-COAD', 'TCGA-STAD', 'TCGA-DLBC']}
-		/>
-		<TextField bind:value={slidePath} label="GDC slide file or ID" icon="database" />
-		<Button variant="primary" icon="ingest">Queue ingestion</Button>
-	</section>
-
-	{#if screenState === 'error'}
-		<StateMessage
-			tone="danger"
-			title="Ingestion jobs could not be loaded"
-			description="The form is still available. Check the API connection before submitting."
-			action="Retry"
-		/>
-	{:else if screenState === 'empty'}
-		<section class="surface">
-			<EmptyState
+		<SelectField bind:value={dataset} label="TCGA project" options={[...COHORT_PROJECTS]} />
+		<div class="slide-field">
+			<TextField
+				bind:value={slidePath}
+				label="GDC slide file or UUID"
+				placeholder="TCGA-XX-XXXX-01Z-00-DX1.svs or file UUID"
 				icon="database"
-				title="No ingestion jobs yet"
-				description="Choose a TCGA project and a GDC slide file or ID to queue the first job."
 			/>
-		</section>
-	{:else if screenState === 'loading'}
-		<div class="pipeline-layout">
+			<Typography style="small" tone="muted">
+				Diagnostic H&E .svs file name, or the GDC file UUID. This does not upload a slide from the
+				browser.
+			</Typography>
+		</div>
+		<Button type="submit" variant="primary" icon="ingest" disabled={submitting}>
+			{submitting ? 'Queuing…' : 'Queue ingestion'}
+		</Button>
+	</form>
+
+	{#if formError}
+		<div class="banner">
+			<StateMessage tone="danger" title="Job was not queued" description={formError} />
+		</div>
+	{/if}
+
+	{#if listPhase === 'loading'}
+		<div class="pipeline-layout" aria-hidden="true">
 			<section class="surface job-list">
 				{#each [0, 1, 2] as row (row)}
-					<div class="job-row"><Skeleton height="lg" /><Skeleton /></div>
+					<div class="job-skeleton"><Skeleton height="lg" /><Skeleton /></div>
 				{/each}
 			</section>
 			<section class="surface detail-loading">
@@ -114,126 +378,185 @@
 				{#each [0, 1, 2, 3, 4, 5] as row (row)}<Skeleton />{/each}
 			</section>
 		</div>
+	{:else if listPhase === 'error' && jobs.length === 0}
+		<StateMessage
+			tone="danger"
+			title="Ingestion jobs could not be loaded"
+			description={listError ??
+				'Check the API connection, then try again. The form is still available.'}
+			action="Retry"
+			onaction={() => void loadList()}
+		/>
+	{:else if jobs.length === 0}
+		<section class="surface">
+			<EmptyState icon="database" title={EMPTY_JOBS_TITLE} description={EMPTY_JOBS_DESCRIPTION} />
+		</section>
 	{:else}
-		<div class="pipeline-layout">
-			<section class="surface job-list">
+		<div class="banners" data-no-worker={noWorker ? 'yes' : 'no'}>
+			{#if listError}
+				<StateMessage
+					tone="danger"
+					title="Ingestion jobs could not be loaded"
+					description={listError}
+					action="Retry"
+					onaction={() => void loadList()}
+				/>
+			{/if}
+			{#if noWorker}
+				<StateMessage tone="warning" title={NO_WORKER_TITLE} description={NO_WORKER_DESCRIPTION} />
+			{/if}
+			{#if notice}
+				{@const openCaseId = notice.openCaseId}
+				<div data-notice={notice.code}>
+					<StateMessage
+						tone={notice.tone}
+						title={notice.title}
+						description={notice.description}
+						action={openCaseId ? 'Open case' : undefined}
+						onaction={openCaseId ? () => openCase(openCaseId) : undefined}
+					/>
+				</div>
+			{/if}
+		</div>
+
+		<div class="pipeline-layout" data-polling={polling ? 'on' : 'off'}>
+			<section class="surface job-list" aria-label="Recent ingestion jobs">
 				<header>
 					<div>
 						<Typography as="h2" style="section">Recent jobs</Typography>
-						<Typography style="small" tone="muted">Polling while work is active</Typography>
+						<Typography style="small" tone="muted">
+							{polling ? 'Checking every few seconds while a job is queued or running' : 'Idle'}
+						</Typography>
 					</div>
-					<Badge tone="info">1 running</Badge>
+					<Badge tone={polling ? 'info' : 'neutral'}>{polling ? 'Live' : 'Idle'}</Badge>
 				</header>
-				{#each jobs as job, index (job.path)}
+				{#each jobs as job (job.id)}
 					<Pressable
 						className="job-row"
-						selected={selectedIndex === index}
-						onclick={() => (selectedIndex = index)}
+						selected={job.id === selectedId}
+						onclick={() => selectJob(job.id)}
 					>
-						<div class="job-row-top">
-							<Badge
-								tone={job.status === 'Done'
-									? 'success'
-									: job.status === 'Failed'
-										? 'danger'
-										: 'info'}>{job.status}</Badge
-							>
-							<Typography style="small" tone="muted">{job.time}</Typography>
+						<div
+							class="job-row-top"
+							data-job-id={job.id}
+							data-selected={job.id === selectedId ? 'yes' : 'no'}
+						>
+							<Badge tone={statusTone(job.status)}>{job.status}</Badge>
+							<Typography style="small" tone="muted">
+								Started {formatTimestamp(job.started_at)} · Finished {formatTimestamp(
+									job.finished_at
+								)}
+							</Typography>
 						</div>
 						<Typography style="label">{job.dataset}</Typography>
-						<Typography style="mono" tone="secondary">{job.path}</Typography>
+						<Typography style="mono" tone="secondary">{job.slide_path}</Typography>
 						<div class="meta-row">
-							<Avatar name="Dr A. Okafor" size="sm" />
-							<Typography style="small" tone="muted">{job.stage}</Typography>
+							{#if job.requested_by}
+								<Avatar name={job.requested_by.name} size="sm" />
+								<Typography style="small" tone="muted">{job.requested_by.name}</Typography>
+								{#if job.requested_by.is_synthetic}
+									<Badge tone="synthetic">Synthetic</Badge>
+								{/if}
+							{:else}
+								<Typography style="small" tone="muted">Requester not recorded</Typography>
+							{/if}
+							<Typography style="small" tone="muted">{stageLabel(job.stage)}</Typography>
 						</div>
 					</Pressable>
 				{/each}
 			</section>
 
-			<section class="surface job-detail">
-				<header>
-					<div>
-						<Typography style="eyebrow" tone="accent">Selected job</Typography>
-						<Typography as="h2" style="section">{selectedJob.path}</Typography>
-						<Typography style="small" tone="muted">{selectedJob.dataset}</Typography>
-					</div>
-					<div class="detail-actions">
-						<Badge
-							tone={selectedJob.status === 'Done'
-								? 'success'
-								: selectedJob.status === 'Failed'
-									? 'danger'
-									: 'info'}>{selectedJob.status}</Badge
-						>
-						{#if selectedJob.status === 'Done'}
-							<Button href="/cases/breast-008412?panel=report" size="sm" variant="primary">
-								Open case
-							</Button>
-						{:else if selectedJob.status === 'Failed'}
-							<Button size="sm" variant="secondary">Retry job</Button>
-						{/if}
-					</div>
-				</header>
-
-				{#if selectedJob.status === 'Failed'}
-					<StateMessage
-						tone="danger"
-						title="Tissue segmentation failed"
-						description="Slide resolution metadata was unavailable. Supply 0.5 μm/px and retry."
-					/>
-				{:else if selectedJob.status === 'Running'}
-					<StateMessage
-						tone="info"
-						title="GPU worker active"
-						description="Current stage: projecting 768-dimensional CONCH-Z features."
-					/>
-				{/if}
-
-				<div class="timeline">
-					{#each stages as stage, index (stage)}
-						<div
-							class="stage"
-							class:done={selectedJob.status === 'Done' || index < 3}
-							class:active={selectedJob.status === 'Running' && index === 3}
-							class:failed={selectedJob.status === 'Failed' && index === 1}
-						>
-							<span class="stage-marker">{index + 1}</span>
-							<div>
-								<Typography style="label">{stage}</Typography>
-								<Typography style="small" tone="muted">
-									{selectedJob.status === 'Done'
-										? `${(index + 1) * 6}s · complete`
-										: index < 3
-											? `${(index + 1) * 9}s · complete`
-											: index === 3 && selectedJob.status === 'Running'
-												? '12,840 / 18,290 patches'
-												: index === 1 && selectedJob.status === 'Failed'
-													? 'Stopped after 4s'
-													: 'Waiting'}
-								</Typography>
-							</div>
-							{#if selectedJob.status === 'Running' && index === 3}
-								<div class="progress"><span></span></div>
+			{#if selected}
+				<section class="surface job-detail" aria-live="polite" data-job-status={selected.status}>
+					<header>
+						<div>
+							<Typography style="eyebrow" tone="accent">Selected job</Typography>
+							<Typography as="h2" style="section">{selected.slide_path}</Typography>
+							<Typography style="small" tone="muted">
+								{selected.dataset} · Started {formatTimestamp(selected.started_at)} · Finished
+								{formatTimestamp(selected.finished_at)}
+							</Typography>
+						</div>
+						<div class="detail-actions">
+							<Badge tone={statusTone(selected.status)}>{selected.status}</Badge>
+							{#if selected.status === 'done' && selected.case_id}
+								<Button
+									size="sm"
+									variant="primary"
+									onclick={() => openCase(selected.case_id as string)}
+								>
+									Open case
+								</Button>
+							{:else if selected.status === 'failed'}
+								<Button
+									size="sm"
+									variant="secondary"
+									disabled={submitting}
+									onclick={() => void submitJob(selected.dataset, selected.slide_path)}
+								>
+									Retry
+								</Button>
 							{/if}
 						</div>
-					{/each}
-				</div>
+					</header>
 
-				<div class="counts">
-					<div>
-						<Typography style="title">18,290</Typography>
-						<Typography style="small" tone="muted">Patches</Typography>
-					</div>
-					<div>
-						<Typography style="title">14</Typography>
-						<Typography style="small" tone="muted">Report chunks</Typography>
-					</div>
-					<div>
-						<Typography style="title">1</Typography>
-						<Typography style="small" tone="muted">Slide</Typography>
-					</div>
-				</div>
-			</section>
+					{#if detailError}
+						<div class="detail-banner">
+							<StateMessage
+								tone="danger"
+								title="Job detail could not be loaded"
+								description={detailError}
+								action="Retry"
+								onaction={() => void loadDetail(selected.id)}
+							/>
+						</div>
+					{/if}
+
+					{#if selected.status === 'failed'}
+						<div class="detail-banner" data-failing-stage={selected.stage ?? 'unknown'}>
+							<StateMessage
+								tone="danger"
+								title={failedItem ? `Failed during ${failedItem.label}` : 'Job failed'}
+								description={selected.error ??
+									'The worker recorded a failure without an error message.'}
+							/>
+						</div>
+					{:else if selected.status === 'running'}
+						<div class="detail-banner">
+							<StateMessage
+								tone="info"
+								title="Worker is on this job"
+								description={`Current stage: ${stageLabel(selected.stage)}.`}
+							/>
+						</div>
+					{/if}
+
+					<ol class="timeline">
+						{#each timeline as item, index (item.stage)}
+							<li class="stage {item.state}">
+								<span class="stage-marker">{index + 1}</span>
+								<div>
+									<Typography style="label">{item.label}</Typography>
+									<Typography style="small" tone="muted">{stageLine(item)}</Typography>
+								</div>
+							</li>
+						{/each}
+					</ol>
+
+					{#if selected.status === 'done' || selected.counts}
+						<div class="counts">
+							<div>
+								<Typography style="title">{formatCount(selected.counts?.patches)}</Typography>
+								<Typography style="small" tone="muted">Patches</Typography>
+							</div>
+							<div>
+								<Typography style="title">{formatCount(selected.counts?.chunks)}</Typography>
+								<Typography style="small" tone="muted">Report chunks</Typography>
+							</div>
+						</div>
+					{/if}
+				</section>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -264,6 +587,7 @@
 	.corpus-health > div {
 		display: grid;
 		gap: var(--space-1);
+		flex: 1;
 	}
 	.health-mark {
 		display: grid;
@@ -274,6 +598,15 @@
 		background: var(--color-success-soft);
 		color: var(--color-success);
 	}
+	.corpus-health.fallback .health-mark,
+	.corpus-health.loading .health-mark {
+		background: var(--color-surface-subtle);
+		color: var(--color-text-muted);
+	}
+	.corpus-health.fallback .health-mark {
+		background: var(--color-warning-soft);
+		color: var(--color-warning);
+	}
 	.new-job {
 		display: grid;
 		grid-template-columns: 1.25fr 1fr 1.5fr auto;
@@ -282,13 +615,20 @@
 		padding: var(--space-5);
 		margin-bottom: var(--space-5);
 	}
-	.new-job > div:first-child {
+	.new-job > div:first-child,
+	.slide-field {
 		display: grid;
 		gap: var(--space-1);
 	}
+	.banner,
+	.banners {
+		display: grid;
+		gap: var(--space-3);
+		margin-bottom: var(--space-5);
+	}
 	.pipeline-layout {
 		display: grid;
-		grid-template-columns: minmax(18rem, 0.75fr) minmax(30rem, 1.4fr);
+		grid-template-columns: minmax(18rem, 0.85fr) minmax(28rem, 1.4fr);
 		gap: var(--space-5);
 		align-items: start;
 	}
@@ -309,6 +649,7 @@
 	.job-detail > header > div:first-child {
 		display: grid;
 		gap: var(--space-1);
+		min-width: 0;
 	}
 	.job-list :global(button.job-row) {
 		display: grid;
@@ -338,12 +679,14 @@
 	.job-detail {
 		padding-bottom: var(--space-5);
 	}
-	.job-detail > :global(.state-message) {
+	.detail-banner {
 		margin: var(--space-5) var(--space-5) 0;
 	}
 	.timeline {
 		display: grid;
+		margin: 0;
 		padding: var(--space-6);
+		list-style: none;
 	}
 	.stage {
 		position: relative;
@@ -381,8 +724,9 @@
 	.stage > div {
 		display: grid;
 		gap: var(--space-1);
+		min-width: 0;
 	}
-	.stage.done .stage-marker {
+	.stage.completed .stage-marker {
 		background: var(--color-success);
 		color: var(--color-text-inverse);
 		border-color: var(--color-success);
@@ -398,25 +742,9 @@
 		color: var(--color-text-inverse);
 		border-color: var(--color-danger);
 	}
-	.progress {
-		position: absolute;
-		right: 0;
-		bottom: var(--space-5);
-		width: 8rem;
-		height: var(--space-1);
-		overflow: hidden;
-		border-radius: var(--radius-pill);
-		background: var(--color-surface-subtle);
-	}
-	.progress span {
-		display: block;
-		width: 70%;
-		height: 100%;
-		background: var(--color-action);
-	}
 	.counts {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		margin: 0 var(--space-5);
 		padding: var(--space-4);
 		border-radius: var(--radius-md);
@@ -431,10 +759,14 @@
 	.counts > div:last-child {
 		border-right: 0;
 	}
-	.detail-loading {
+	.detail-loading,
+	.job-skeleton {
 		display: grid;
 		gap: var(--space-5);
 		padding: var(--space-6);
+	}
+	.job-detail :global(h2) {
+		overflow-wrap: anywhere;
 	}
 	@media (max-width: 1000px) {
 		.corpus-grid {
@@ -448,9 +780,7 @@
 		}
 	}
 	@media (max-width: 760px) {
-		.corpus-grid {
-			grid-template-columns: repeat(2, 1fr);
-		}
+		.corpus-grid,
 		.new-job,
 		.pipeline-layout {
 			grid-template-columns: 1fr;

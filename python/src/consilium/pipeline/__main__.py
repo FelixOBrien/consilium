@@ -89,6 +89,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
+    _add_worker_parser(subcommands)
     manifest = subcommands.add_parser(
         "manifest",
         help="Build the stage-1 cohort manifest from GDC and TCGA-Reports",
@@ -438,6 +439,8 @@ def _add_run_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentPar
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "worker":
+        return _run_worker(args)
     try:
         result: _Result | int
         if args.command == "manifest":
@@ -687,6 +690,68 @@ def _public_error(exc: BaseException) -> str:
     if "://" in message or "password" in lowered:
         return exc.__class__.__name__
     return message
+
+
+def _add_worker_parser(subcommands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    worker = subcommands.add_parser(
+        "worker",
+        help="Claim queued single-slide jobs and run stages 2 to 9",
+        description=(
+            "Poll Postgres for queued ingestion jobs, claim one with "
+            "FOR UPDATE SKIP LOCKED, and run download through index for that slide. "
+            "Research prototype. Not for clinical use."
+        ),
+    )
+    worker.add_argument(
+        "--once",
+        action="store_true",
+        help="Claim at most one job, then exit. Exit 1 when that job fails.",
+    )
+    worker.add_argument(
+        "--poll-interval",
+        type=float,
+        default=2.0,
+        help="Seconds to wait when the queue is empty. Default: 2.",
+    )
+    worker.add_argument(
+        "--worker-id",
+        default=None,
+        help="Recorded on the claimed row. Default: hostname and process id.",
+    )
+    worker.add_argument(
+        "--data-dir",
+        type=Path,
+        default=None,
+        help="Root for per-job files and TCGA_Reports.csv. Default: <repo>/data.",
+    )
+    worker.add_argument(
+        "--gpu",
+        type=int,
+        default=0,
+        help="GPU index passed to TRIDENT. Use -1 for CPU.",
+    )
+    worker.add_argument(
+        "--database-url",
+        default=None,
+        help="Postgres URL. Default: DATABASE_URL.",
+    )
+
+
+def _run_worker(args: argparse.Namespace) -> int:
+    from consilium.pipeline.worker import run_worker  # pragma: allowlist secret
+
+    try:
+        return run_worker(
+            once=args.once,
+            poll_interval=args.poll_interval,
+            worker_id=args.worker_id,
+            data_dir=args.data_dir,
+            database_url=args.database_url,
+            gpu=args.gpu,
+        )
+    except (OSError, RuntimeError, ValueError, EmbedError, psycopg.Error) as exc:
+        print(f"error: {_public_error(exc)}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

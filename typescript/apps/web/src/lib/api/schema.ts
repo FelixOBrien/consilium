@@ -767,8 +767,19 @@ export interface components {
 			/** Message */
 			message: string;
 		};
-		/** HealthResponse */
+		/**
+		 * HealthResponse
+		 * @description Liveness plus the corpus counts the ingestion screen summarises.
+		 */
 		HealthResponse: {
+			/** Cases */
+			cases?: number | null;
+			/** Patches */
+			patches?: number | null;
+			/** Report Chunks */
+			report_chunks?: number | null;
+			/** Slides */
+			slides?: number | null;
 			/**
 			 * Status
 			 * @constant
@@ -845,6 +856,11 @@ export interface components {
 			 * Format: uuid
 			 */
 			id: string;
+			/**
+			 * Outcome
+			 * @description Set on POST /api/ingestion/jobs so the ingestion screen can tell a new job from a retry, an active duplicate, or a slide that is already ready. Null on later reads. created is HTTP 201; the other values are HTTP 200.
+			 */
+			outcome?: ('created' | 'retried' | 'duplicate_active' | 'already_ingested') | null;
 			requested_by: components['schemas']['PathologistRef'] | null;
 			/** Slide Id */
 			slide_id: string | null;
@@ -2029,7 +2045,7 @@ export interface operations {
 			};
 		};
 		responses: {
-			/** @description An active job already exists for this dataset and slide path. */
+			/** @description No new queued job. The body is the active job (duplicate_active), the failed job returned to the queue (retried), or a finished job for a slide that is already ready (already_ingested). */
 			200: {
 				headers: {
 					[name: string]: unknown;

@@ -7,7 +7,8 @@ and concept rows. ``project`` maps features into CONCH-Z. ``thumbs`` writes
 patch thumbnail packs. ``export`` writes slide, patch, and concept parquet,
 keeping stage-7 concept rows and reading ``patient_id`` from ``path_case``.
 ``load`` copies parquet into Postgres and builds indexes. ``run`` executes
-every stage in that order, with ``reports`` before ``export``.
+every stage in that order, with ``reports`` before ``export``. ``worker``
+claims queued single-slide jobs and runs those stages for one slide.
 """
 
 from __future__ import annotations

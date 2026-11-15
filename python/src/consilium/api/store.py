@@ -798,7 +798,7 @@ class Store:
                 and job.slide_path == body.slide_path
                 and job.status in {"queued", "running"}
             ):
-                return job, False
+                return job.model_copy(update={"outcome": "duplicate_active"}), False
         job = IngestionJob(
             id=uuid4(),
             dataset=body.dataset,
@@ -817,7 +817,7 @@ class Store:
             finished_at=None,
         )
         self.jobs[job.id] = job
-        return job, True
+        return job.model_copy(update={"outcome": "created"}), True
 
     def _case(self, case_id: str) -> CaseDetail:
         case = self.cases.get(case_id)

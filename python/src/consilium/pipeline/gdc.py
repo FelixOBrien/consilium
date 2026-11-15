@@ -127,6 +127,29 @@ class GdcClient:
     def fetch_cases(self) -> list[dict[str, Any]]:
         return self._fetch_all("cases", case_filters(), CASE_FIELDS)
 
+    def fetch_filtered(
+        self,
+        endpoint: str,
+        filters: Mapping[str, Any],
+        fields: str,
+        *,
+        size: int = 5,
+    ) -> list[dict[str, Any]]:
+        """One page of hits. Used to resolve a single slide without a full cohort scan."""
+        if size < 1:
+            raise ValueError("size must be positive")
+        page = self._post(
+            endpoint,
+            {"filters": filters, "fields": fields, "size": size, "from": 0},
+        )
+        data = page.get("data")
+        if not isinstance(data, dict):
+            raise RuntimeError(f"GDC {endpoint} response has no data object")
+        batch = data.get("hits")
+        if not isinstance(batch, list):
+            raise RuntimeError(f"GDC {endpoint} response is missing hits")
+        return [item if isinstance(item, dict) else {} for item in batch]
+
     def _fetch_all(
         self,
         endpoint: str,
