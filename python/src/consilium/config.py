@@ -10,6 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 DEFAULT_DATABASE_URL = "postgresql://localhost:5432/consilium"  # pragma: allowlist secret
 DEFAULT_SLIDE_CACHE_MAX_GB = 8.0
 DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5"
+DEFAULT_MLFLOW_EXPERIMENT = "/Shared/consilium-consult"  # pragma: allowlist secret
 
 
 class StorageBackend(StrEnum):
@@ -87,6 +88,9 @@ class Settings(BaseSettings):
     hf_token: SecretStr | None = Field(default=None, repr=False)
     databricks_host: str | None = None
     databricks_token: SecretStr | None = Field(default=None, repr=False)
+    mlflow_tracing_enabled: bool = False
+    mlflow_experiment_name: str = DEFAULT_MLFLOW_EXPERIMENT
+    mlflow_tracking_uri: str | None = None
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -144,11 +148,26 @@ class Settings(BaseSettings):
             return DEFAULT_ANTHROPIC_MODEL
         return value
 
+    @field_validator("mlflow_tracing_enabled", mode="before")
+    @classmethod
+    def blank_mlflow_tracing_enabled(cls, value: object) -> object:
+        if _blank(value):
+            return False
+        return value
+
+    @field_validator("mlflow_experiment_name", mode="before")
+    @classmethod
+    def blank_mlflow_experiment_name(cls, value: object) -> object:
+        if _blank(value):
+            return DEFAULT_MLFLOW_EXPERIMENT
+        return value
+
     @field_validator(
         "anthropic_api_key",
         "hf_token",
         "databricks_host",
         "databricks_token",
+        "mlflow_tracking_uri",
         mode="before",
     )
     @classmethod

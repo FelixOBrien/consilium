@@ -13,6 +13,7 @@ from consilium.agent import (  # pragma: allowlist secret
     consult_turn,
 )
 from consilium.agent.provider import LLMProvider, UnavailableProvider  # pragma: allowlist secret
+from consilium.agent.tracing import build_tracer  # pragma: allowlist secret
 from consilium.api.deps import (  # pragma: allowlist secret
     Acting,
     SettingsDep,
@@ -107,6 +108,7 @@ def create_consult_message(
     if not isinstance(encoders, TextEncoders):
         fail(500, "error", "Text encoder is not configured.")
     provider = _provider(request, settings)
+    tracer = build_tracer(settings)
 
     async def events() -> AsyncIterator[bytes]:
         async for event in consult_turn(
@@ -116,6 +118,7 @@ def create_consult_message(
             thread_id=thread_id,
             actor_id=actor.id,
             body=body,
+            tracer=tracer,
         ):
             yield _frame(event)
 
