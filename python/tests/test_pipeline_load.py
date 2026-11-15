@@ -21,6 +21,7 @@ from consilium.embed import (  # pragma: allowlist secret
     MockTextEncoder,
     build_text_encoders,
 )
+from consilium.pipeline import __main__ as pipeline_cli  # pragma: allowlist secret
 from consilium.pipeline import load as pipeline_load  # pragma: allowlist secret
 from consilium.pipeline.__main__ import main  # pragma: allowlist secret
 from consilium.pipeline.export import export_cohort  # pragma: allowlist secret
@@ -74,6 +75,38 @@ _PIPELINE_TABLES = (
     "patch",
 )
 _APP_TABLES = ("annotation", "consult_thread", "consult_message", "ingestion_job")
+
+
+def test_load_cli_passes_max_cases(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_load(
+        export_dir: Path,
+        *,
+        replace_fixtures: bool = False,
+        max_cases: int | None = None,
+        **_kwargs: object,
+    ) -> SimpleNamespace:
+        captured["export_dir"] = export_dir
+        captured["replace_fixtures"] = replace_fixtures
+        captured["max_cases"] = max_cases
+        return SimpleNamespace(summary=lambda: "subset_cases 12\n", failed=0)
+
+    monkeypatch.setattr(pipeline_cli, "load_parquet", fake_load)
+    code = pipeline_cli.main(
+        ["load", "--from", str(tmp_path), "--max-cases", "12", "--replace-fixtures"]
+    )
+    assert code == 0
+    assert captured == {
+        "export_dir": tmp_path,
+        "replace_fixtures": True,
+        "max_cases": 12,
+    }
+    assert "subset_cases 12" in capsys.readouterr().out
 
 
 def test_reports_then_export_keeps_concept_embeddings(tmp_path: Path) -> None:

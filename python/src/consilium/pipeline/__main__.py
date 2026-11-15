@@ -461,7 +461,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "verify-alignment":
             result = _run_alignment(args)
         elif args.command == "load":
-            result = load_parquet(args.export_dir, replace_fixtures=args.replace_fixtures)
+            result = load_parquet(
+                args.export_dir,
+                replace_fixtures=args.replace_fixtures,
+                max_cases=args.max_cases,
+            )
         elif args.command == "evaluate":
             result = run_evaluate(out_dir=args.out_dir, encoder=args.encoder)
         elif args.command == "subset":
