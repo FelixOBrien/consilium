@@ -59,6 +59,18 @@ def read_connection(request: Request) -> Iterator[Connection]:
             conn.rollback()
 
 
+@contextmanager
+def write_connection(request: Request) -> Iterator[Connection]:
+    """One pooled connection for a write. Commits on success."""
+    with get_pool(request).connection() as conn:
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+
+
 def get_acting_pathologist(
     request: Request,
     x_user_id: Annotated[
